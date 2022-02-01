@@ -1,4 +1,3 @@
-// import { hash, uuid } from '../lib/crypto'
 import sha256 from 'crypto-js/sha256'
 import Hex from 'crypto-js/enc-hex'
 import {Tx} from "./tx";
