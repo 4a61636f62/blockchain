@@ -5,7 +5,7 @@ import {BlockchainServer} from "./blockchain-server";
 
 const PORT = 3000;
 const app = express();
-app.use('/',             express.static(path.join(__dirname, '../../public')));
+app.use('/',             express.static(path.join(__dirname, '../client/public')));
 app.use('/node_modules', express.static(path.join(__dirname, '../../node_modules')));
 
 const httpServer: http.Server = app.listen(PORT, () => {
