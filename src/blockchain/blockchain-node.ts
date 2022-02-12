@@ -2,40 +2,22 @@ import sha256 from 'crypto-js/sha256'
 import Hex from 'crypto-js/enc-hex'
 import {Tx} from "./tx";
 import {Block} from "./block";
-import {Blockchain} from "./blockchain";
 
 const HASH_REQUIREMENT = '0000';
 
-export class Node {
-    chain: Blockchain
-    private txPool: Tx[] = []
+export abstract class Node {
 
-    constructor() {
-        this.chain = new Blockchain()
+    static async mineGenesisBlock(): Promise<Block> {
+        return await Node.mine(new Block('0', Date.now(), []))
     }
 
-
-    async startChain(): Promise<void> {
-        const genesis = await Node.mineBlock(new Block('0', Date.now(), []))
-        this.chain.addBlock(genesis)
-    }
-
-    loadChain(chain: Blockchain): void {
-        this.chain = chain
-    }
-
-    async createBlock(): Promise<Block> {
-        const block = new Block(this.chain.lastBlock.hash, Date.now(), this.txPool)
-        await Node.mineBlock(block)
-        this.chain.addBlock(block)
+    static async mineBlock(prevBlock: Block, txs: Tx[]): Promise<Block> {
+        const block = new Block(prevBlock.hash, Date.now(), txs)
+        await Node.mine(block)
         return block
     }
 
-    addToTxPool(...txs: Tx[]) {
-        this.txPool.push(...txs)
-    }
-
-    static async mineBlock(block: Block): Promise<Block> {
+    private static async mine(block: Block): Promise<Block> {
         let hash = ''
         let nonce = 0
 

@@ -19,19 +19,18 @@ describe("WebSocket Server", () => {
     test("Blocks can be broadcast from one client to all other clients", async () => {
         const [client1] = await createSocketClient(port, 1)
         const [client2, messages2] = await createSocketClient(port, 1)
-        const n = new Node()
 
-        await n.startChain()
-        const b = n.chain.lastBlock
+        const b = await Node.mineGenesisBlock()
         const m: Message = {
             correlationId: "1",
             type: MessageTypes.NewBlockAnnouncement,
             payload: b
         }
-
+        console.log(m)
         client1.send(JSON.stringify(m))
         await waitForSocketState(client2, client2.CLOSED)
         const [rm] = messages2
+        console.log(rm)
         const b2 = JSON.parse(rm.toString()).payload
 
         expect(b2).toEqual(b)

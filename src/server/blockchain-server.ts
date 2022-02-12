@@ -10,6 +10,7 @@ export class BlockchainServer extends WsServer<Message> {
     }
 
     private handleNewBlockAnnouncement(sender: WebSocket, message: Message) {
+        console.log("Received new block: ", message.payload)
         this.broadcastFrom(sender, message)
     }
 }
