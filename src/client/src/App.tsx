@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Message, MessageTypes} from "../../lib/message";
 import {Node} from "../../blockchain/blockchain-node";
 import {Block} from "../../blockchain/block";
@@ -11,29 +11,48 @@ function App() {
     const [blocks, setBlocks] = useState<Block[]>([])
     const [mining, setMining] = useState(false)
 
-    const handleBlockAnnouncement = useCallback((message: Message) => {
+    const handleBlockAnnouncement = (message: Message) => {
         console.log(message)
         const block = message.payload as Block
         block.hash = message.payload._hash
         block.nonce = message.payload._nonce
         addBlock(block)
-    }, [blocks])
+    }
 
-    const handleMessages = useCallback((message: Message) => {
+    const handleChainResponse = (message: Message) => {
+        console.log(message)
+        const blocksReceived = Array.from<Block>(message.payload)
+        setBlocks(blocksReceived)
+    }
+
+    const handleChainRequest = (message: Message) => {
+        console.log(message)
+        console.log(blocks)
+        client.sendChain(blocks)
+    }
+
+    const handleMessages = (message: Message) => {
         switch (message.type) {
             case MessageTypes.NewBlockAnnouncement: return handleBlockAnnouncement(message)
+            case MessageTypes.ChainResponse: return handleChainResponse(message)
+            case MessageTypes.ChainRequest: return handleChainRequest(message)
         }
-    }, [])
+    }
 
 
     useEffect(() => {
         // Request the longest chain from server or start a new chain
         (async () => {
-            console.log("attempting to connect")
-            await client.connect(handleMessages)
-            console.log("connected")
+            await client.connect()
+            console.log("connected to blockchain server")
+            client.requestLongestChain()
         })()
     }, [])
+
+    useEffect(() => {
+        // update callback method when blocks change
+        client.setMessagesCallback(handleMessages)
+    }, [blocks])
 
     async function mine() {
         if (mining) {
@@ -62,6 +81,9 @@ function App() {
                     onClick={mine}
             >
                 Mine!
+            </button>
+            <button onClick={() => console.log(blocks)}>
+                blocks
             </button>
             <Blocks blocks={blocks} />
         </div>

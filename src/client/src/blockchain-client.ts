@@ -10,4 +10,19 @@ export class BlockchainClient extends WsClient<Message> {
             payload: block
         })
     }
+
+    requestLongestChain(): void {
+        this.send({
+            type: MessageTypes.ChainRequest,
+            correlationId: '1',
+        })
+    }
+
+    sendChain(blocks: Block[]): void {
+        this.send({
+            type: MessageTypes.ChainResponse,
+            correlationId: '1',
+            payload: blocks
+        })
+    }
 }

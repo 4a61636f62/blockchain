@@ -2,14 +2,18 @@ export abstract class WsClient<T> {
     private wsc!: Promise<WebSocket>
     private messagesCallback!: (messages: T) => void
 
-    connect(messagesCallback: (message: T) => void): Promise<WebSocket> {
-        this.messagesCallback = messagesCallback
+    connect(): Promise<WebSocket> {
+        // this.messagesCallback = messagesCallback
         return this.wsc = new Promise((resolve, reject) => {
             const ws = new WebSocket("ws://localhost:3000")
             ws.addEventListener("open", () => resolve(ws))
             ws.addEventListener("error", err => reject(err))
             ws.addEventListener("message", this.onMessageReceived)
         })
+    }
+
+    setMessagesCallback(messagesCallback: (message: T) => void) {
+        this.messagesCallback = messagesCallback
     }
 
     disconnect() {
