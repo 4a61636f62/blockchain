@@ -16,13 +16,23 @@ function App() {
         const block = message.payload as Block
         block.hash = message.payload._hash
         block.nonce = message.payload._nonce
-        addBlock(block)
+        if (Node.validateBlock(block, blocks[blocks.length-1].hash)) {
+            addBlock(block)
+        }
     }
 
     const handleChainResponse = (message: Message) => {
         console.log(message)
-        const blocksReceived = Array.from<Block>(message.payload)
-        setBlocks(blocksReceived)
+        if (message.payload.length == 0) {
+            mine().then()
+            return
+        }
+        for (const obj of message.payload) {
+            const block = obj as Block
+            block.hash = obj._hash
+            block.nonce = obj._nonce
+            addBlock(block)
+        }
     }
 
     const handleChainRequest = (message: Message) => {
@@ -61,6 +71,7 @@ function App() {
         setMining(true)
         let block: Block
         if (blocks.length == 0) {
+            console.log("mining genesis block")
             block = await Node.mineGenesisBlock()
         } else {
             block = await Node.mineBlock(blocks[blocks.length-1], [])

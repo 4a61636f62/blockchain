@@ -17,6 +17,10 @@ export abstract class Node {
         return block
     }
 
+    static validateBlock(block: Block, prevHash: string): boolean {
+        return (this.hashBlock(block, block.nonce) === block.hash && block.prevHash === prevHash)
+    }
+
     private static async mine(block: Block): Promise<Block> {
         let hash = ''
         let nonce = 0
