@@ -7,5 +7,7 @@ export interface Message {
 }
 
 export enum MessageTypes {
-    NewBlockAnnouncement    = 'NEW_BLOCK_ANNOUNCEMENT'
+    NewBlockAnnouncement    = 'NEW_BLOCK_ANNOUNCEMENT',
+    ChainRequest            = 'CHAIN_REQUEST',
+    ChainResponse            = 'CHAIN_RESPONSE'
 }

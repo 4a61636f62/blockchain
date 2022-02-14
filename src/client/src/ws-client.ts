@@ -18,7 +18,7 @@ export abstract class WsClient<T> {
 
     private readonly onMessageReceived = (event: MessageEvent) => {
         const message = JSON.parse(event.data) as T
-        // check if message correlates to message awaiting reply
+        // need to check if message correlates to message awaiting reply
         this.messagesCallback(message)
     }
 

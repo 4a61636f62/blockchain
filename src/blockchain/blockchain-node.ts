@@ -17,13 +17,17 @@ export abstract class Node {
         return block
     }
 
+    static validateBlock(block: Block, prevHash: string): boolean {
+        return (this.hashBlock(block, block.nonce) === block.hash && block.prevHash === prevHash)
+    }
+
     private static async mine(block: Block): Promise<Block> {
         let hash = ''
         let nonce = 0
 
         do {
-            hash = Node.hashBlock(block, nonce)
             ++nonce
+            hash = Node.hashBlock(block, nonce)
         } while (!hash.startsWith(HASH_REQUIREMENT))
 
         block.hash = hash

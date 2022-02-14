@@ -26,15 +26,26 @@ export abstract class WsServer<T> {
         })
     }
 
-    protected broadcastFrom(sender: WebSocket, message: T): void {
+    protected broadcastFrom(sender: WebSocket, message: T): number {
+        let sentTo = 0
         this.wss.clients.forEach(client => {
             if (WsServer.isAlive(client) && client !== sender) {
                 client.send(JSON.stringify(message))
+                sentTo++
             }
         })
+        return sentTo
+    }
+
+    protected sendTo(client: WebSocket, message: T): void {
+        client.send(JSON.stringify(message))
     }
 
     private static isAlive(client: WebSocket): boolean {
         return (client.readyState !== WebSocket.CLOSING && client.readyState !== WebSocket.CLOSED)
+    }
+
+    protected get clients(): Set<WebSocket> {
+        return this.wss.clients
     }
 }
