@@ -49,7 +49,6 @@ export class BlockchainServer extends WsServer<Message> {
                 const longestChain = Array.from(awaitingResponses.responses.values()).reduce((prev, curr) =>
                     prev.payload.length < curr.payload.length ? curr : prev
                 ).payload
-                console.log(longestChain)
                 this.sendTo(requester, {
                     type: MessageTypes.ChainResponse,
                     correlationId: message.correlationId,

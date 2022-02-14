@@ -26,8 +26,8 @@ export abstract class Node {
         let nonce = 0
 
         do {
-            hash = Node.hashBlock(block, nonce)
             ++nonce
+            hash = Node.hashBlock(block, nonce)
         } while (!hash.startsWith(HASH_REQUIREMENT))
 
         block.hash = hash
