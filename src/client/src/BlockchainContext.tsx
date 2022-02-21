@@ -2,10 +2,12 @@ import React, {createContext, useContext, useEffect, useReducer} from 'react';
 import {BlockchainClient} from "./blockchain-client";
 import {Block} from "../../blockchain/block";
 import {Message, MessageTypes} from "../../lib/message";
+import {Wallet} from "../../blockchain/wallet";
 
 type State = {
     client: BlockchainClient
     blocks: Block[]
+    wallet: Wallet
 }
 type Action =
     {type: 'add-block', block: Block} |
@@ -45,7 +47,8 @@ function reducer(state: State, action: Action) {
 function BlockchainProvider({children}: ComponentProps) {
     const [state, dispatch] = useReducer(reducer, {
         client: new BlockchainClient(),
-        blocks: []
+        blocks: [],
+        wallet: new Wallet()
     })
 
     const handleMessages = (message: Message) => {
@@ -73,7 +76,7 @@ function BlockchainProvider({children}: ComponentProps) {
 function useBlockchainClient() {
     const context = useContext(BlockchainContext)
     if (!context) {
-        throw new Error('useBlockchainClient must be used with a BlockchainClientProvider')
+        throw new Error('useBlockchainClient must be used with a BlockchainProvider')
     }
 
     return context

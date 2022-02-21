@@ -7,7 +7,8 @@ export class Block {
     constructor(
         readonly prevHash: string,
         readonly timestamp: number,
-        readonly txs : Tx[]
+        readonly txs : Tx[],
+        readonly minerAddress: string
     ) {}
 
     get hash(): string {

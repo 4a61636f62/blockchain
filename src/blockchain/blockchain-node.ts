@@ -7,12 +7,12 @@ const HASH_REQUIREMENT = '0000';
 
 export abstract class Node {
 
-    static async mineGenesisBlock(): Promise<Block> {
-        return await Node.mine(new Block('0', Date.now(), []))
+    static async mineGenesisBlock(minerAddress: string): Promise<Block> {
+        return await Node.mine(new Block('0', Date.now(), [], minerAddress))
     }
 
-    static async mineBlock(prevBlock: Block, txs: Tx[]): Promise<Block> {
-        const block = new Block(prevBlock.hash, Date.now(), txs)
+    static async mineBlock(prevBlock: Block, txs: Tx[], minerAddress: string): Promise<Block> {
+        const block = new Block(prevBlock.hash, Date.now(), txs, minerAddress)
         await Node.mine(block)
         return block
     }
@@ -36,7 +36,7 @@ export abstract class Node {
     }
 
     static hashBlock(block: Block, nonce: number): string {
-        const data = block.prevHash + block.timestamp + JSON.stringify(block.txs) + nonce
+        const data = block.prevHash + block.timestamp + JSON.stringify(block.txs) + nonce + block.minerAddress
         return sha256(data).toString(Hex)
     }
 }
