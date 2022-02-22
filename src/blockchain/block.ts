@@ -1,4 +1,4 @@
-import {Tx} from './tx'
+import {Transaction} from "./transaction";
 
 export class Block {
     private _nonce: number = 0
@@ -7,7 +7,7 @@ export class Block {
     constructor(
         readonly prevHash: string,
         readonly timestamp: number,
-        readonly txs : Tx[],
+        readonly txs : Transaction[],
         readonly minerAddress: string
     ) {}
 

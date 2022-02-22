@@ -3,17 +3,22 @@ import {BlockchainClient} from "./blockchain-client";
 import {Block} from "../../blockchain/block";
 import {Message, MessageTypes} from "../../lib/message";
 import {Wallet} from "../../blockchain/wallet";
+import {Transaction} from "../../blockchain/transaction";
 
 type State = {
     client: BlockchainClient
     blocks: Block[]
+    transactions: Transaction[]
     wallet: Wallet
 }
 type Action =
     {type: 'add-block', block: Block} |
+    {type: 'add-transaction', transaction: Transaction} |
     {type: 'send-block-announcement', block: Block} |
+    {type: 'send-transaction-announcement', transaction: Transaction} |
     {type: 'send-chain-request'} |
     {type: 'handle-block-announcement', message: Message} |
+    {type: 'handle-transaction-announcement', message: Message} |
     {type: 'handle-chain-request'} |
     {type: 'handle-chain-response', message: Message}
 
@@ -26,8 +31,13 @@ function reducer(state: State, action: Action) {
     switch (action.type) {
         case 'add-block':
             return {...state, blocks: state.client.addBlock(action.block, state.blocks)}
+        case 'add-transaction':
+            return {...state, transactions: state.client.addTransaction(action.transaction, state.transactions)}
         case 'send-block-announcement':
             state.client.announceBlock(action.block)
+            return state
+        case 'send-transaction-announcement':
+            state.client.announceTransaction(action.transaction)
             return state
         case 'send-chain-request':
             state.client.requestLongestChain()
@@ -37,6 +47,8 @@ function reducer(state: State, action: Action) {
             return state
         case 'handle-block-announcement':
             return {...state, blocks: state.client.handleBlockAnnouncement(action.message, state.blocks)}
+        case 'handle-transaction-announcement':
+            return {...state, transactions: state.client.handleTransactionAnnouncement(action.message, state.transactions)}
         case 'handle-chain-response':
             return {...state, blocks: state.client.handleChainResponse(action.message)}
     }
@@ -48,6 +60,7 @@ function BlockchainProvider({children}: ComponentProps) {
     const [state, dispatch] = useReducer(reducer, {
         client: new BlockchainClient(),
         blocks: [],
+        transactions: [],
         wallet: new Wallet()
     })
 
@@ -55,6 +68,8 @@ function BlockchainProvider({children}: ComponentProps) {
         switch (message.type) {
             case MessageTypes.NewBlockAnnouncement:
                 return dispatch({type: 'handle-block-announcement', message})
+            case MessageTypes.TransactionAnnouncement:
+                return dispatch({type: 'handle-transaction-announcement', message})
             case MessageTypes.ChainRequest:
                 return dispatch({type: 'handle-chain-request'})
             case MessageTypes.ChainResponse:

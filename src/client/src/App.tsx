@@ -3,14 +3,13 @@ import {Node} from "../../blockchain/blockchain-node";
 import {Block} from "../../blockchain/block";
 import {Blocks} from "./components/Blocks";
 import {useBlockchainClient} from "./BlockchainContext";
-import {Grid} from "@mantine/core"
+import {Button, Center, Grid} from "@mantine/core"
 import {Transactions} from "./components/Transactions";
+import {Wallet} from "./components/Wallet";
 
 function App() {
     const [mining, setMining] = useState(false)
     const {state, dispatch} = useBlockchainClient()
-
-
 
     async function mine() {
         if (mining) {
@@ -22,7 +21,7 @@ function App() {
             console.log("mining genesis block")
             block = await Node.mineGenesisBlock(state.wallet.address)
         } else {
-            block = await Node.mineBlock(state.blocks[state.blocks.length-1], [], state.wallet.address)
+            block = await Node.mineBlock(state.blocks[state.blocks.length-1], state.transactions, state.wallet.address)
         }
         dispatch({type: 'add-block', block})
         dispatch({type: 'send-block-announcement', block})
@@ -31,17 +30,22 @@ function App() {
 
     return (
             <div className="Blockchain">
-                <button disabled={mining}
-                        onClick={mine}
-                >
-                    Mine!
-                </button>
                 <Grid gutter="xl">
+                    <Grid.Col span={6} style={{minHeight: 400}}>
+                        <Center>
+                            <Button disabled={mining} onClick={mine}>
+                                Mine!
+                            </Button>
+                        </Center>
+                    </Grid.Col>
                     <Grid.Col span={6}>
+                        <Wallet />
+                    </Grid.Col>
+                    <Grid.Col span={6} style={{minHeight: 600}}>
                         <Blocks blocks={state.blocks} />
                     </Grid.Col>
                     <Grid.Col span={6}>
-                        <Transactions transactions={[]} />
+                        <Transactions transactions={state.transactions} />
                     </Grid.Col>
                 </Grid>
             </div>

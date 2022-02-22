@@ -2,6 +2,7 @@ import {WsClient} from "./ws-client";
 import {Message, MessageTypes} from "../../lib/message";
 import {Block} from "../../blockchain/block";
 import {Node} from "../../blockchain/blockchain-node";
+import {Transaction} from "../../blockchain/transaction";
 
 export class BlockchainClient extends WsClient<Message> {
     announceBlock(block: Block): void {
@@ -9,6 +10,14 @@ export class BlockchainClient extends WsClient<Message> {
             type: MessageTypes.NewBlockAnnouncement,
             correlationId: '1',
             payload: block
+        })
+    }
+
+    announceTransaction(transaction: Transaction): void {
+        this.send({
+            type: MessageTypes.TransactionAnnouncement,
+            correlationId: '1',
+            payload: transaction
         })
     }
 
@@ -27,9 +36,14 @@ export class BlockchainClient extends WsClient<Message> {
         })
     }
 
-    addBlock(block: Block, blocks: Block[]) {
+    addBlock(block: Block, blocks: Block[]): Block[] {
         blocks.push(block)
         return blocks
+    }
+
+    addTransaction(transaction: Transaction, transactions: Transaction[]): Transaction[] {
+        transactions.push(transaction)
+        return transactions
     }
 
     handleBlockAnnouncement(message: Message, blocks: Block[]): Block[] {
@@ -40,6 +54,12 @@ export class BlockchainClient extends WsClient<Message> {
             blocks.push(block)
         }
         return blocks
+    }
+
+    handleTransactionAnnouncement(message: Message, transactions: Transaction[]): Transaction[] {
+        const transaction = message.payload as Transaction
+        transactions.push(transaction)
+        return transactions
     }
 
     handleChainResponse(message: Message): Block[] {
