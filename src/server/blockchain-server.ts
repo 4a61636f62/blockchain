@@ -13,13 +13,14 @@ export class BlockchainServer extends WsServer<Message> {
 
     protected handleMessage(sender: WebSocket, message: Message): void {
         switch (message.type) {
-            case MessageTypes.NewBlockAnnouncement: return this.handleNewBlockAnnouncement(sender, message)
+            case MessageTypes.NewBlockAnnouncement: return this.handleAnnouncement(sender, message)
+            case MessageTypes.TransactionAnnouncement: return this.handleAnnouncement(sender, message)
             case MessageTypes.ChainRequest: return this.handleChainRequest(sender, message)
             case MessageTypes.ChainResponse: return this.handleChainResponse(sender, message)
         }
     }
 
-    private handleNewBlockAnnouncement(sender: WebSocket, message: Message) {
+    private handleAnnouncement(sender: WebSocket, message: Message) {
         this.broadcastFrom(sender, message)
     }
 
