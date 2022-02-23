@@ -15,10 +15,11 @@ module.exports = {
     },
     resolve: {
         extensions: ['.tsx', '.ts', '.js'],
+        modules: [path.resolve('..'), "node_modules"]
     },
     output: {
         filename: 'bundle.js',
-        path: path.resolve(__dirname, 'public'),
+        path: path.resolve(__dirname, 'public')
     },
     plugins: [
         new Dotenv()
