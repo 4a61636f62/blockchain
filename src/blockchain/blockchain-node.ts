@@ -28,25 +28,28 @@ export abstract class Node {
         return sha256(data).toString(Hex)
     }
 
-    static hashTx(inputs: TransactionInput[], outputs: TransactionOutput[]): string {
-        return sha256(inputs.toString() + outputs.toString()).toString()
+    static createTXID(inputs: TransactionInput[], outputs: TransactionOutput[], timestamp: number): string {
+        return sha256(inputs.toString() + outputs.toString() + timestamp).toString()
     }
 
     static getUTXO(blocks: Block[]): Map<string,TransactionOutput[]> {
         const txs = this.getTransactions(blocks)
-        const utxo = new Map<string, TransactionOutput[]>()
+        const utxoMap = new Map<string, TransactionOutput[]>()
+
         for (let tx of txs) {
-            utxo.set(tx.txid, tx.outputs)
+            utxoMap.set(tx.txid, tx.outputs)
             for (let input of tx.inputs) {
-                const outputs = utxo.get(input.txid)
-                if (typeof outputs !== "undefined") {
-                    utxo.set(input.txid, outputs
-                        .filter((val, i) => i !== input.outputIndex)
-                    )
+                let outputs = utxoMap.get(input.txid)
+                if (typeof outputs !== 'undefined') {
+                    outputs.splice(input.outputIndex, 1)
+                    if (outputs.length == 0) {
+                        utxoMap.delete(input.txid)
+                    }
                 }
             }
         }
-        return utxo
+
+        return utxoMap
     }
 
     static getAddressBalances(blocks: Block[]): Map<blockchainAddress, number> {
@@ -83,10 +86,12 @@ export abstract class Node {
 
     private static createBlockReward(minerAddress: blockchainAddress): Transaction {
         const blockRewardOutput: TransactionOutput = {address: minerAddress, amount: 100}
+        const timestamp = Date.now()
         return ({
             inputs: [],
             outputs: [blockRewardOutput],
-            txid: this.hashTx([], [blockRewardOutput])
+            txid: this.createTXID([], [blockRewardOutput], timestamp),
+            timestamp
         })
     }
 }

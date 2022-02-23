@@ -6,6 +6,7 @@ export type Transaction = {
     txid: txid
     inputs: TransactionInput[]
     outputs: TransactionOutput[]
+    timestamp: number
 }
 
 export type TransactionInput = {

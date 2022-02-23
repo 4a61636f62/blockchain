@@ -27,8 +27,6 @@ export class Wallet {
     public createTransaction(outputAddress: blockchainAddress, amountToSend: number, blocks: Block[]): Transaction | null {
         const utxo = Node.getUTXO(blocks)
         const [inputs, change] = this.getInputsForTransaction(amountToSend, utxo)
-        console.log(utxo)
-        console.log(change)
         if (change < 0) {
             return null
         }
@@ -49,11 +47,57 @@ export class Wallet {
             )
         }
 
+        const timestamp = Date.now()
         return {
             inputs: inputs,
             outputs: outputs,
-            txid: Node.hashTx(inputs, outputs)
+            txid: Node.createTXID(inputs, outputs, timestamp),
+            timestamp
         }
+    }
+
+    public getBalance(blocks: Block[], unconfirmed: Transaction[]): [number, number] {
+        let balance = 0
+        let unconfirmedBalance = 0
+        const utxoMap = Node.getUTXO(blocks)
+        const utxo = Array.from(utxoMap.values()).flat()
+
+        for (let output of utxo) {
+            if (output.address == this.address) {
+                balance += output.amount
+            }
+        }
+
+        for (let tx of unconfirmed) {
+            for (let input of tx.inputs) {
+                const outputs = utxoMap.get(input.txid)
+                if (typeof outputs !== 'undefined') {
+                    for(let output of outputs) {
+                        if (output.address == this.address) {
+                            unconfirmedBalance -= output.amount
+                        }
+                    }
+                }
+            }
+            for (let output of tx.outputs) {
+                if (output.address == this.address) {
+                    unconfirmedBalance += output.amount
+                }
+            }
+        }
+        return [balance, unconfirmedBalance]
+    }
+
+    public getUnconfirmedBalance(unconfirmed: Transaction[]): number {
+        let balance = 0
+        for (let tx of unconfirmed) {
+            for (let output of tx.outputs) {
+                if (output.address == this.address) {
+                    balance += output.amount
+                }
+            }
+        }
+        return balance
     }
 
     private getInputsForTransaction(amount: number, utxo: Map<string,

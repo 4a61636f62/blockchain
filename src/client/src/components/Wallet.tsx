@@ -1,5 +1,5 @@
 import React from "react";
-import {Button, Container, Group, NumberInput, TextInput, Title} from "@mantine/core";
+import {Button, Container, Grid, Group, NumberInput, Text, TextInput, Title} from "@mantine/core";
 import {useBlockchainClient} from "../BlockchainContext";
 import {useForm} from "@mantine/hooks";
 import {blockchainAddress} from "../../../blockchain/wallet";
@@ -21,26 +21,69 @@ export const Wallet = () => {
             form.reset()
         }
     }
+
+    const [balance, unconfirmed] = state.wallet.getBalance(state.blocks, state.transactions)
+
+
     return (
         <Container>
             <Title order={3}>Wallet</Title>
-            <form onSubmit={form.onSubmit(values => onSubmit(values.address, values.amount))}>
-                <Group direction="column">
-                    <TextInput
-                        required
-                        label={"Address"}
-                        {...form.getInputProps('address')}
-                    />
-                    <NumberInput
-                        required
-                        label={"Amount"}
-                        {...form.getInputProps('amount')}
-                    />
-                    <Button type="submit">
-                        Create Transaction
-                    </Button>
-                </Group>
+            <Grid>
+                <Grid.Col span={6}>
+                    <Title order={6}>Address</Title>
+                    <Text>{state.wallet.address}</Text>
+                </Grid.Col>
+                <Grid.Col span={6}>
+                    <Title order={6}>Balance</Title>
+                    <Text>{balance + (unconfirmed == 0 ? '' : ` (${unconfirmed} unconfirmed)`)}</Text>
+                </Grid.Col>
+                <Grid.Col span={6}>
+                    <form onSubmit={form.onSubmit(values => onSubmit(values.address, values.amount))}>
+                        <Group direction={"column"}>
+                            <Title order={4}>Create Transaction</Title>
+                            <TextInput
+                                required
+                                label={"Address"}
+                                {...form.getInputProps('address')}
+                            />
+                            <NumberInput
+                                required
+                                label={"Amount"}
+                                {...form.getInputProps('amount')}
+                            />
+                            <Button type="submit">
+                                Send
+                            </Button>
+                        </Group>
+                    </form>
+                </Grid.Col>
+                <Grid.Col span={6}>
 
-            </form>
+                </Grid.Col>
+            </Grid>
         </Container>)
 }
+
+// <Container>
+//     <Title order={3}>Wallet</Title>
+//     <Text>{state.wallet.address}</Text>
+//     <form onSubmit={form.onSubmit(values => onSubmit(values.address, values.amount))}>
+//         <Group direction="column">
+//             <TextInput
+//                 required
+//                 label={"Address"}
+//                 {...form.getInputProps('address')}
+//             />
+//             <NumberInput
+//                 required
+//                 label={"Amount"}
+//                 {...form.getInputProps('amount')}
+//             />
+//             <Button type="submit">
+//                 Create Transaction
+//             </Button>
+//         </Group>
+//
+//     </form>
+// </Container>)
+
