@@ -1,6 +1,6 @@
-import {Block} from "../src/blockchain/block";
-import {Wallet} from "../src/blockchain/wallet";
-import {Node} from "../src/blockchain/blockchain-node"
+import {Block} from "../src/lib/blockchain";
+import {Wallet} from "../src/lib/wallet";
+import {Node} from "../src/lib/blockchain-node"
 
 
 describe("Blockchain Node", () => {

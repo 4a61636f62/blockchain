@@ -1,5 +1,7 @@
 {
   "compilerOptions": {
+    "baseUrl": "src/",
+
     /* Visit https://aka.ms/tsconfig.json to read more about this file */
 
     /* Projects */
@@ -99,5 +101,8 @@
     "skipLibCheck": true,
     /* Skip type checking all .d.ts files. */
     "jsx": "react"
-  }
+
+
+  },
+  "include": ["src"]
 }
