@@ -6,11 +6,15 @@ import { useForm } from "@mantine/hooks";
 function SimulationControl({
   running,
   setRunning,
+  autoTx,
+  setAutoTx,
   createSimulation,
   canStart,
 }: {
   running: boolean;
   setRunning: React.Dispatch<SetStateAction<boolean>>;
+  autoTx: boolean;
+  setAutoTx: React.Dispatch<SetStateAction<boolean>>;
   createSimulation: (noOfNodes: number, miningDifficulty: number) => void;
   canStart: boolean;
 }) {
@@ -44,7 +48,11 @@ function SimulationControl({
             {...form.getInputProps("difficulty")}
             disabled={running}
           />
-          <Switch label="Auto Transactions" />
+          <Switch
+            label="Auto Transactions"
+            checked={autoTx}
+            onChange={(e) => setAutoTx(e.currentTarget.checked)}
+          />
           <Button type="submit" disabled={running}>
             New
           </Button>

@@ -11,7 +11,9 @@ function Node({ address }: { address: string }) {
 }
 
 function Nodes({ wallets }: { wallets: Wallet[] }) {
-  const nodes = wallets.map((w) => <Node address={w.address} />);
+  const nodes = wallets.map((w) => (
+    <Node address={w.address} key={w.address} />
+  ));
 
   return (
     <Container>

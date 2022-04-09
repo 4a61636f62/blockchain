@@ -20,7 +20,7 @@ function Live() {
                   <Wallet />
                 </Grid.Col>
                 <Grid.Col span={6}>
-                  <UnconfirmedTransactions />
+                  <UnconfirmedTransactions transactions={[]} />
                 </Grid.Col>
               </Grid>
               <Divider style={{ margin: 10 }} />
