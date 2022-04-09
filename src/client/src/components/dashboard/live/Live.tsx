@@ -24,7 +24,7 @@ function Live() {
                 </Grid.Col>
               </Grid>
               <Divider style={{ margin: 10 }} />
-              <BlockChain />
+              <BlockChain blocks={[]} />
             </>
           }
         />

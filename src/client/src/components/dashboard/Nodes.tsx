@@ -1,15 +1,18 @@
 import React from "react";
-import { Card, Container, ScrollArea, Title } from "@mantine/core";
+import { Card, Container, ScrollArea, Title, Text } from "@mantine/core";
+import { Wallet } from "lib/wallet";
 
-function Node() {
-  return <Card withBorder>Node</Card>;
+function Node({ address }: { address: string }) {
+  return (
+    <Card withBorder>
+      <Text>{address}</Text>
+    </Card>
+  );
 }
 
-function Nodes() {
-  const nodes: JSX.Element[] = [];
-  for (let i = 0; i < 100; i += 1) {
-    nodes.push(<Node />);
-  }
+function Nodes({ wallets }: { wallets: Wallet[] }) {
+  const nodes = wallets.map((w) => <Node address={w.address} />);
+
   return (
     <Container>
       <Title>Nodes</Title>

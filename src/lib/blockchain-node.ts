@@ -8,10 +8,10 @@ import {
   TransactionOutput,
 } from "./blockchain";
 
-const HASH_REQUIREMENT = "0000";
+const HASH_REQUIREMENT = "0";
 
 export abstract class Node {
-  static async mineGenesisBlock(minerAddress: string): Promise<Block> {
+  static mineGenesisBlock(minerAddress: string): Block {
     return Node.mine({
       prevHash: "0",
       timestamp: Date.now(),

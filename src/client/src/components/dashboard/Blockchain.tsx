@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import {
   Card,
   Center,
@@ -7,12 +7,12 @@ import {
   ScrollArea,
   Title,
 } from "@mantine/core";
+import { Block } from "lib/blockchain";
 
-const NUM_BLOCKS = 10;
 const BLOCK_WIDTH = 200;
 const ARROW_WIDTH = 100;
 
-function Block({ index }: { index: number }) {
+function BlockCard({ block }: { block: Block }) {
   return (
     <div
       style={{
@@ -20,7 +20,7 @@ function Block({ index }: { index: number }) {
         margin: 0,
       }}
     >
-      <Card withBorder>Block #{index}</Card>
+      <Card withBorder>{block.hash}</Card>
     </div>
   );
 }
@@ -40,19 +40,28 @@ function Arrow() {
   );
 }
 
-function BlockChain() {
+function BlockChain({ blocks }: { blocks: Block[] }) {
+  const viewport = useRef<HTMLDivElement>(null);
   const elements: JSX.Element[] = [];
-  for (let i = 0; i < NUM_BLOCKS; i += 1) {
-    elements.push(<Block index={i} />);
-    elements.push(<Arrow />);
-  }
+  blocks.forEach((b, index) => {
+    elements.push(<BlockCard block={b} key={b.hash} />);
+    if (index !== blocks.length - 1) {
+      elements.push(<Arrow key={`arrow${b.hash}`} />);
+    }
+  });
+
+  useEffect(() => {
+    if (viewport.current != null)
+      viewport.current.scrollTo({ left: viewport.current.scrollWidth });
+  });
+
   return (
     <Container size="xl">
       <Center>
         <Title>Blocks</Title>
       </Center>
-      <ScrollArea style={{ padding: 0 }}>
-        <div style={{ width: (BLOCK_WIDTH + ARROW_WIDTH) * NUM_BLOCKS }}>
+      <ScrollArea viewportRef={viewport}>
+        <div style={{ width: (BLOCK_WIDTH + ARROW_WIDTH) * blocks.length }}>
           <Group direction="row" spacing={0}>
             {elements}
           </Group>
