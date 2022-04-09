@@ -13,14 +13,10 @@ export function TransactionRow({ transaction }: { transaction: Transaction }) {
   );
 }
 
-export function Transactions({
-  transactions,
-}: {
-  transactions: Transaction[];
-}) {
+function Transactions({ transactions }: { transactions: Transaction[] }) {
   return (
     <Container>
-      <Title order={3}>Unconfirmed Transactions</Title>
+      <Title order={3}>Transactions</Title>
       <Table>
         <thead>
           <tr>
@@ -38,3 +34,5 @@ export function Transactions({
     </Container>
   );
 }
+
+export default Transactions;

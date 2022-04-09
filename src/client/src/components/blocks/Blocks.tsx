@@ -73,7 +73,7 @@ function BlockRow({ index, block }: { index: number; block: Block }) {
   );
 }
 
-export function Blocks({ blocks }: { blocks: Block[] }) {
+function Blocks({ blocks }: { blocks: Block[] }) {
   return (
     <Container style={{ minHeight: 500 }}>
       <Title order={3}>Blocks</Title>
@@ -96,3 +96,5 @@ export function Blocks({ blocks }: { blocks: Block[] }) {
     </Container>
   );
 }
+
+export default Blocks;
