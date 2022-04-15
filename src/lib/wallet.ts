@@ -8,7 +8,7 @@ import {
   TransactionOutput,
 } from "./blockchain";
 
-import { Node } from "./blockchain-node";
+import { BlockchainUtils } from "./blockchain-utils";
 
 const ec = new EC("secp256k1");
 
@@ -37,7 +37,7 @@ export class Wallet {
     amountToSend: number,
     blocks: Block[]
   ): Transaction | null {
-    const utxo = Node.getUTXO(blocks);
+    const utxo = BlockchainUtils.getUTXO(blocks);
     const [inputs, change] = this.getInputsForTransaction(amountToSend, utxo);
     if (change < 0) {
       return null;
@@ -61,7 +61,7 @@ export class Wallet {
     return {
       inputs,
       outputs,
-      txid: Node.createTXID(inputs, outputs, timestamp),
+      txid: BlockchainUtils.createTXID(inputs, outputs, timestamp),
       timestamp,
     };
   }
@@ -72,7 +72,7 @@ export class Wallet {
   ): [number, number] {
     let balance = 0;
     let unconfirmedBalance = 0;
-    const utxoMap = Node.getUTXO(blocks);
+    const utxoMap = BlockchainUtils.getUTXO(blocks);
     const utxo = Array.from(utxoMap.values()).flat();
 
     utxo.forEach((output) => {

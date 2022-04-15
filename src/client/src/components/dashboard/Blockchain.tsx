@@ -6,13 +6,14 @@ import {
   Group,
   ScrollArea,
   Title,
+  Text,
 } from "@mantine/core";
 import { Block } from "lib/blockchain";
 
-const BLOCK_WIDTH = 200;
+const BLOCK_WIDTH = 400;
 const ARROW_WIDTH = 100;
 
-function BlockCard({ block }: { block: Block }) {
+function BlockCard({ block, index }: { block: Block; index: number }) {
   return (
     <div
       style={{
@@ -20,7 +21,14 @@ function BlockCard({ block }: { block: Block }) {
         margin: 0,
       }}
     >
-      <Card withBorder>{block.hash}</Card>
+      <Card withBorder>
+        <Title>#{index}</Title>
+        <Text>{new Date(block.timestamp).toLocaleTimeString()}</Text>
+        <Text>Hash: {block.hash.slice(0, 20)}...</Text>
+        <Text>Prev Hash: {block.prevHash.slice(0, 20)}...</Text>
+        <Text>Transactions: {block.txs.length}</Text>
+        <Text>Nonce: {block.nonce}</Text>
+      </Card>
     </div>
   );
 }
@@ -44,7 +52,7 @@ function BlockChain({ blocks }: { blocks: Block[] }) {
   const viewport = useRef<HTMLDivElement>(null);
   const elements: JSX.Element[] = [];
   blocks.forEach((b, index) => {
-    elements.push(<BlockCard block={b} key={b.hash} />);
+    elements.push(<BlockCard block={b} index={index} key={b.hash} />);
     if (index !== blocks.length - 1) {
       elements.push(<Arrow key={`arrow${b.hash}`} />);
     }

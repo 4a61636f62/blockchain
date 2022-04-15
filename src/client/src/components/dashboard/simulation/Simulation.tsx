@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Divider, Grid } from "@mantine/core";
 import { Route, Routes } from "react-router-dom";
 import { Wallet } from "lib/wallet";
-import { Node } from "lib/blockchain-node";
+import { BlockchainUtils } from "lib/blockchain-utils";
 import { Block, Transaction } from "lib/blockchain";
 import SimulationControl from "./SimulationControl";
 import Nodes from "../Nodes";
@@ -14,6 +14,7 @@ import Transactions from "../../transactions/Transactions";
 function Simulation() {
   const [running, setRunning] = useState(false);
   const [autoTx, setAutoTx] = useState(false);
+  const [nodes, setNodes] = useState(new Map<string, Wallet>());
   const [nodeWallets, setNodeWallets] = useState<Wallet[]>([]);
   const [blocks, setBlocks] = useState<Block[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -24,23 +25,32 @@ function Simulation() {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const createSimulation = (noOfNodes: number, miningDifficulty: number) => {
     const wallets = [];
+    const nodeMap = new Map<string, Wallet>();
     setBlocks([]);
     for (let i = 0; i < noOfNodes; i += 1) {
-      wallets.push(new Wallet());
+      const wallet = new Wallet();
+      wallets.push(wallet);
+      nodeMap.set(`Node ${i + 1}`, wallet);
     }
+    setNodes(nodeMap);
     setNodeWallets(wallets);
+    setTransactions([]);
   };
 
   const mineBlock = useMemo(
     () => (minerAddress: string) => {
       let block: Block;
       if (blocks.length === 0) {
-        block = Node.mineGenesisBlock(minerAddress);
+        block = BlockchainUtils.mineGenesisBlock(minerAddress);
       } else {
         const txs = [...txRef.current];
         txRef.current = [];
         setTransactions(txRef.current);
-        block = Node.mineBlock(blocks[blocks.length - 1], txs, minerAddress);
+        block = BlockchainUtils.mineBlock(
+          blocks[blocks.length - 1],
+          txs,
+          minerAddress
+        );
       }
       setBlocks([...blocks, block]);
     },
@@ -58,7 +68,9 @@ function Simulation() {
       if (tx) {
         txRef.current = [...txRef.current, tx];
         setTransactions(txRef.current);
+        return true;
       }
+      return false;
     },
     [blocks]
   );
@@ -76,7 +88,6 @@ function Simulation() {
   useEffect(() => {
     if (running && autoTx) {
       txTimeout.current = setInterval(() => {
-        // problem: timeout is started before setTransactions([]) is called in createTransaction
         const fromWallet = getRandomNode();
         const toAddress = getRandomNode().address;
         const amount = 0;
@@ -107,7 +118,13 @@ function Simulation() {
               <Grid>
                 <Divider />
                 <Grid.Col span={6}>
-                  <Nodes wallets={nodeWallets} />
+                  <Nodes
+                    nodes={nodes}
+                    blocks={blocks}
+                    transactions={transactions}
+                    mineBlock={mineBlock}
+                    createTransaction={createTransaction}
+                  />
                 </Grid.Col>
                 <Grid.Col span={6}>
                   <UnconfirmedTransactions transactions={transactions} />

@@ -10,9 +10,9 @@ import {
 
 const HASH_REQUIREMENT = "0";
 
-export abstract class Node {
+export abstract class BlockchainUtils {
   static mineGenesisBlock(minerAddress: string): Block {
-    return Node.mine({
+    return BlockchainUtils.mine({
       prevHash: "0",
       timestamp: Date.now(),
       txs: [this.createBlockReward(minerAddress)],
@@ -25,7 +25,7 @@ export abstract class Node {
     txs: Transaction[],
     minerAddress: string
   ): Block {
-    return Node.mine({
+    return BlockchainUtils.mine({
       prevHash: prevBlock.hash,
       timestamp: Date.now(),
       txs: [...txs, this.createBlockReward(minerAddress)],
@@ -90,6 +90,33 @@ export abstract class Node {
     return map;
   }
 
+  static getAddressUnconfirmedBalances(
+    blocks: Block[],
+    transactions: Transaction[]
+  ): Map<string, number> {
+    const map = new Map<string, number>();
+    const utxo = BlockchainUtils.getUTXO(blocks);
+
+    transactions.forEach((tx) => {
+      tx.inputs.forEach((input) => {
+        const inputOutputs = utxo.get(input.txid);
+        if (typeof inputOutputs !== "undefined") {
+          inputOutputs.forEach((output) => {
+            let balance = map.get(output.address);
+            if (!balance) balance = 0;
+            map.set(output.address, balance - output.amount);
+          });
+        }
+        tx.outputs.forEach((output) => {
+          let balance = map.get(output.address);
+          if (!balance) balance = 0;
+          map.set(output.address, balance + output.amount);
+        });
+      });
+    });
+    return map;
+  }
+
   static getTransactions(blocks: Block[]): Transaction[] {
     const txs: Transaction[] = [];
     blocks.forEach((b) => {
@@ -104,7 +131,7 @@ export abstract class Node {
 
     do {
       nonce += 1;
-      hash = Node.hashBlock(unminedBlock, nonce);
+      hash = BlockchainUtils.hashBlock(unminedBlock, nonce);
     } while (!hash.startsWith(HASH_REQUIREMENT));
 
     return {
