@@ -6,6 +6,7 @@ import {
   ScrollArea,
   Title,
   Container,
+  Pagination,
 } from "@mantine/core";
 import { Block } from "lib/blockchain";
 
@@ -74,25 +75,34 @@ function BlockRow({ index, block }: { index: number; block: Block }) {
 }
 
 function Blocks({ blocks }: { blocks: Block[] }) {
+  const [page, setPage] = useState(1);
   return (
     <Container style={{ minHeight: 500 }}>
       <Title order={3}>Blocks</Title>
-      <Table>
-        <thead>
-          <tr>
-            <th>Height</th>
-            <th>Time</th>
-            <th>Miner</th>
-            <th>Transactions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {blocks
-            .map((b, i) => <BlockRow key={b.hash} index={i} block={b} />)
-            .reverse()
-            .slice(0, 10)}
-        </tbody>
-      </Table>
+      <div style={{ height: 500 }}>
+        <Table>
+          <thead>
+            <tr>
+              <th>Height</th>
+              <th>Time</th>
+              <th>Miner</th>
+              <th>Transactions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {blocks
+              .map((b, i) => <BlockRow key={b.hash} index={i} block={b} />)
+              .reverse()
+              .slice((page - 1) * 10, (page - 1) * 10 + 10)}
+          </tbody>
+        </Table>
+      </div>
+
+      <Pagination
+        total={Math.ceil(blocks.length / 10)}
+        page={page}
+        onChange={setPage}
+      />
     </Container>
   );
 }
