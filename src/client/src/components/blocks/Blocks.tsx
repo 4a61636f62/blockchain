@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   Anchor,
   Table,
@@ -14,18 +15,17 @@ function BlockModal({
   index,
   block,
   opened,
-  setOpened,
 }: {
   index: number;
   block: Block;
   opened: boolean;
-  setOpened: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
+  const navigate = useNavigate();
   return (
     <Modal
       size="xl"
       opened={opened}
-      onClose={() => setOpened(false)}
+      onClose={() => navigate("/blocks")}
       title={`block #${index}`}
     >
       <Table>
@@ -39,7 +39,11 @@ function BlockModal({
             <td>{block.hash}</td>
           </tr>
           <tr>
-            <td>Previous Hash</td>
+            <td>
+              <Anchor component={Link} to={`/blocks/${block.prevHash}`}>
+                Previous Hash
+              </Anchor>
+            </td>
             <td>{block.prevHash}</td>
           </tr>
           <tr>
@@ -55,29 +59,39 @@ function BlockModal({
 
 function BlockRow({ index, block }: { index: number; block: Block }) {
   // format transactions and convert timestamp to local time
-  const [opened, setOpened] = useState(false);
   return (
     <tr>
       <td>
-        <Anchor onClick={() => setOpened(true)}>{index}</Anchor>
+        <Anchor component={Link} to={`/blocks/${block.hash}`}>
+          {index}
+        </Anchor>
       </td>
       <td>{new Date(block.timestamp).toLocaleTimeString()}</td>
       <td>{block.minerAddress}</td>
       <td>{block.txs.length}</td>
-      <BlockModal
-        index={index}
-        block={block}
-        opened={opened}
-        setOpened={setOpened}
-      />
     </tr>
   );
 }
 
 function Blocks({ blocks }: { blocks: Block[] }) {
   const [page, setPage] = useState(1);
+  const { hash } = useParams();
+
+  const [blockIndex, setBlockIndex] = useState(-1);
+
+  useEffect(() => {
+    if (typeof hash !== "undefined") {
+      const index = blocks.findIndex((b) => b.hash === hash);
+      setBlockIndex(index);
+      setPage(Math.floor((blocks.length - index - 1) / 10) + 1);
+    }
+  }, [hash, blocks]);
+
   return (
     <Container style={{ minHeight: 500 }}>
+      {hash && blockIndex >= 0 && (
+        <BlockModal index={blockIndex} block={blocks[blockIndex]} opened />
+      )}
       <Title order={3}>Blocks</Title>
       <div style={{ height: 500 }}>
         <Table>
@@ -101,7 +115,9 @@ function Blocks({ blocks }: { blocks: Block[] }) {
       <Pagination
         total={Math.ceil(blocks.length / 10)}
         page={page}
-        onChange={setPage}
+        onChange={(p) => {
+          setPage(p);
+        }}
       />
     </Container>
   );

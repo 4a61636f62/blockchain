@@ -135,7 +135,10 @@ function Simulation() {
             </>
           }
         />
-        <Route path="blocks" element={<Blocks blocks={blocks} />} />
+        <Route path="blocks">
+          <Route index element={<Blocks blocks={blocks} />} />
+          <Route path=":hash" element={<Blocks blocks={blocks} />} />
+        </Route>
         <Route
           path="transactions"
           element={<Transactions transactions={[]} />}

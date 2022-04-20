@@ -7,8 +7,10 @@ import {
   ScrollArea,
   Title,
   Text,
+  Anchor,
 } from "@mantine/core";
 import { Block } from "lib/blockchain";
+import { Link } from "react-router-dom";
 
 const BLOCK_WIDTH = 400;
 const ARROW_WIDTH = 100;
@@ -24,7 +26,9 @@ function BlockCard({ block, index }: { block: Block; index: number }) {
       <Card withBorder>
         <Title>#{index}</Title>
         <Text>{new Date(block.timestamp).toLocaleTimeString()}</Text>
-        <Text>Hash: {block.hash.slice(0, 20)}...</Text>
+        <Anchor component={Link} to={`blocks/${block.hash}`}>
+          Hash: {block.hash.slice(0, 20)}...
+        </Anchor>
         <Text>Prev Hash: {block.prevHash.slice(0, 20)}...</Text>
         <Text>Transactions: {block.txs.length}</Text>
         <Text>Nonce: {block.nonce}</Text>
