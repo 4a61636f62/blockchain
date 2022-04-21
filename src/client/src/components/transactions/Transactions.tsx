@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Anchor,
   Container,
@@ -31,11 +31,25 @@ export function TransactionRow({ transaction }: { transaction: Transaction }) {
 function TransactionModal({
   tx,
   opened,
+  inputTxs,
 }: {
   tx: Transaction;
+  inputTxs: Map<string, Transaction>;
   opened: boolean;
 }) {
   const navigate = useNavigate();
+
+  const getOutputAmount = useCallback(
+    (txid: string, outputIndex: number) => {
+      const inputTx = inputTxs.get(txid);
+      if (typeof inputTx !== "undefined") {
+        return inputTx.outputs[outputIndex].amount;
+      }
+      return 0;
+    },
+    [tx, inputTxs]
+  );
+
   return (
     <Modal opened={opened} onClose={() => navigate("/transactions")} size="50%">
       <Text>{tx.txid}</Text>
@@ -46,16 +60,20 @@ function TransactionModal({
           <Text>Inputs:</Text>
           {tx.inputs.length > 0 ? (
             tx.inputs.map((i) => (
-              <>
+              <div key={i.txid + i.outputIndex}>
                 <Anchor
                   component={Link}
                   to={`/transactions/${i.txid}`}
                 >{`txid: ${i.txid.slice(0, 10)}...${i.txid.slice(
                   tx.txid.length - 11
                 )}`}</Anchor>
-                <Text>{`index: ${i.outputIndex}`}</Text>
+                <Text>{`Output Index: ${i.outputIndex}`}</Text>
+                <Text>{`Amount ${getOutputAmount(
+                  i.txid,
+                  i.outputIndex
+                )}`}</Text>
                 <br />
-              </>
+              </div>
             ))
           ) : (
             <Text>Block Reward</Text>
@@ -64,11 +82,11 @@ function TransactionModal({
         <Grid.Col span={6}>
           <Text>Outputs:</Text>
           {tx.outputs.map((o) => (
-            <>
+            <div key={o.address + o.amount}>
               <Text>{`Amount: ${o.amount}`}</Text>
               <Text>{`To: ${o.address}`}</Text>
               <br />
-            </>
+            </div>
           ))}
         </Grid.Col>
       </Grid>
@@ -86,19 +104,46 @@ function Transactions({
   const txs = [...[...unconfirmed].reverse(), ...[...confirmed].reverse()];
   const [page, setPage] = useState(1);
   const { txid } = useParams();
-  const [txIndex, setTxIndex] = useState(-1);
+
+  const [openTx, setOpenTx] = useState<Transaction | undefined>(undefined);
+
+  const txMap = useMemo(() => {
+    const map = new Map<string, Transaction>();
+    txs.forEach((tx) => {
+      map.set(tx.txid, tx);
+    });
+    return map;
+  }, [confirmed, unconfirmed]);
 
   useEffect(() => {
     if (typeof txid !== "undefined") {
-      const index = txs.findIndex((t) => t.txid === txid);
-      setTxIndex(index);
-      setPage(Math.floor(index / 10) + 1);
+      const tx = txMap.get(txid);
+      if (typeof tx !== "undefined") {
+        setPage(Math.floor(txs.findIndex((t) => t.txid === tx.txid) / 10) + 1);
+        setOpenTx(tx);
+      }
     }
   }, [txid, confirmed, unconfirmed]);
 
+  const getInputTxs = useCallback(
+    (tx: Transaction) => {
+      const inputTxs = new Map<string, Transaction>();
+      tx.inputs.forEach((input) => {
+        const inputTx = txMap.get(input.txid);
+        if (typeof inputTx !== "undefined") {
+          inputTxs.set(inputTx.txid, inputTx);
+        }
+      });
+      return inputTxs;
+    },
+    [txMap]
+  );
+
   return (
     <Container key={txid}>
-      {txid && txIndex >= 0 && <TransactionModal tx={txs[txIndex]} opened />}
+      {txid && typeof openTx !== "undefined" && (
+        <TransactionModal tx={openTx} inputTxs={getInputTxs(openTx)} opened />
+      )}
       <Title order={3}>Transactions</Title>
       <div style={{ height: 500 }}>
         <Table>
