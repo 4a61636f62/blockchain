@@ -7,8 +7,8 @@ import React, {
 } from "react";
 import { Message, MessageTypes } from "lib/message";
 import { Wallet } from "lib/wallet";
-import { BlockchainClient } from "../services/blockchain-client";
-import { reducer, State, Action } from "../utils/reducers";
+import { BlockchainClient } from "client/src/services/blockchain-client";
+import { reducer, State, Action } from "client/src/utils/reducers";
 
 type Dispatch = (action: Action) => void;
 type ComponentProps = { children: React.ReactNode };

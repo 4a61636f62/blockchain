@@ -1,12 +1,11 @@
 import React from "react";
 import ReactDOM from "react-dom";
-
-import App from "client/src/components/App";
-import { BlockchainProvider } from "client/src/components/BlockchainContext";
+import { BrowserRouter } from "react-router-dom";
+import App from "client/src/App";
 
 ReactDOM.render(
-  <BlockchainProvider>
+  <BrowserRouter>
     <App />
-  </BlockchainProvider>,
+  </BrowserRouter>,
   document.getElementById("root")
 );

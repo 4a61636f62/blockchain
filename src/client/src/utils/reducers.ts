@@ -1,6 +1,6 @@
 import { Block, Transaction } from "lib/blockchain";
 import { Message } from "lib/message";
-import { Node } from "lib/blockchain-node";
+import { BlockchainUtils } from "lib/blockchain-utils";
 import { Wallet } from "lib/wallet";
 import { BlockchainClient } from "../services/blockchain-client";
 
@@ -51,7 +51,10 @@ const handleBlockAnnouncement = (state: State, message: Message): State => {
     const block = JSON.parse(message.payload) as Block;
     if (
       state.blocks.length < 1 ||
-      Node.validateBlock(block, state.blocks[state.blocks.length - 1].hash)
+      BlockchainUtils.validateBlock(
+        block,
+        state.blocks[state.blocks.length - 1].hash
+      )
     ) {
       return addBlock(state, block);
     }
