@@ -65,7 +65,7 @@ export abstract class BlockchainUtils {
     const utxoMap = new Map<string, TransactionOutput[]>();
 
     for (let i = 0; i < txs.length; i += 1) {
-      utxoMap.set(txs[i].txid, txs[i].outputs);
+      utxoMap.set(txs[i].txid, [...txs[i].outputs]);
       const { inputs } = txs[i];
       for (let j = 0; j < inputs.length; j += 1) {
         const outputs = utxoMap.get(inputs[j].txid);
