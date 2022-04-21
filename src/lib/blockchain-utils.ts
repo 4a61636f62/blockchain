@@ -96,7 +96,6 @@ export abstract class BlockchainUtils {
   ): Map<string, number> {
     const map = new Map<string, number>();
     const utxo = BlockchainUtils.getUTXO(blocks);
-
     transactions.forEach((tx) => {
       tx.inputs.forEach((input) => {
         const inputOutputs = utxo.get(input.txid);
@@ -107,11 +106,11 @@ export abstract class BlockchainUtils {
             map.set(output.address, balance - output.amount);
           });
         }
-        tx.outputs.forEach((output) => {
-          let balance = map.get(output.address);
-          if (!balance) balance = 0;
-          map.set(output.address, balance + output.amount);
-        });
+      });
+      tx.outputs.forEach((output) => {
+        let balance = map.get(output.address);
+        if (!balance) balance = 0;
+        map.set(output.address, balance + output.amount);
       });
     });
     return map;
