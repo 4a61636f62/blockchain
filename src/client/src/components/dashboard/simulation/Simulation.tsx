@@ -124,6 +124,7 @@ function Simulation() {
                     transactions={transactions}
                     mineBlock={mineBlock}
                     createTransaction={createTransaction}
+                    running={running}
                   />
                 </Grid.Col>
                 <Grid.Col span={6}>

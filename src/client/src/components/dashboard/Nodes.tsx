@@ -22,6 +22,7 @@ function Node({
   unconfirmedBalance,
   mineBlock,
   createTransaction,
+  disableMiningButton,
 }: {
   wallet: Wallet;
   name: string;
@@ -30,6 +31,7 @@ function Node({
   unconfirmedBalance: number | undefined;
   mineBlock: (minerAddress: string) => void;
   createTransaction: (toAddress: string, amount: number) => boolean;
+  disableMiningButton: boolean;
 }) {
   const [opened, setOpened] = useState(false);
 
@@ -63,7 +65,12 @@ function Node({
           </Text>
         </Grid.Col>
         <Grid.Col span={6}>
-          <Button onClick={() => mineBlock(wallet.address)}>Mine</Button>
+          <Button
+            onClick={() => mineBlock(wallet.address)}
+            disabled={disableMiningButton}
+          >
+            Mine
+          </Button>
           <Button onClick={() => setOpened(true)}>Transaction</Button>
         </Grid.Col>
       </Grid>
@@ -77,6 +84,7 @@ function Nodes({
   transactions,
   mineBlock,
   createTransaction,
+  running,
 }: {
   nodes: Map<string, Wallet>;
   blocks: Block[];
@@ -87,6 +95,7 @@ function Nodes({
     toAddress: string,
     amount: number
   ) => boolean;
+  running: boolean;
 }) {
   const balances = BlockchainUtils.getAddressBalances(blocks);
   const unconfirmedBalances = BlockchainUtils.getAddressUnconfirmedBalances(
@@ -105,6 +114,7 @@ function Nodes({
       createTransaction={(toAddress: string, amount: number) =>
         createTransaction(w, toAddress, amount)
       }
+      disableMiningButton={running}
     />
   ));
   return (
