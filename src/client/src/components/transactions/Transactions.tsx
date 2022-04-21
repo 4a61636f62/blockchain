@@ -1,13 +1,27 @@
 import React, { useEffect, useState } from "react";
-import { Container, Modal, Pagination, Table, Title } from "@mantine/core";
+import {
+  Anchor,
+  Container,
+  Divider,
+  Grid,
+  Modal,
+  Pagination,
+  Table,
+  Text,
+  Title,
+} from "@mantine/core";
 import { Transaction } from "lib/blockchain";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 
 export function TransactionRow({ transaction }: { transaction: Transaction }) {
   return (
     // format transactions and convert timestamp to local time
     <tr>
-      <td>{transaction.txid}</td>
+      <td>
+        <Anchor component={Link} to={`/transactions/${transaction.txid}`}>
+          {transaction.txid}
+        </Anchor>
+      </td>
       <td>{transaction.inputs.length}</td>
       <td>{transaction.outputs.length}</td>
     </tr>
@@ -23,8 +37,41 @@ function TransactionModal({
 }) {
   const navigate = useNavigate();
   return (
-    <Modal opened={opened} onClose={() => navigate("/transactions")}>
-      {tx.txid}
+    <Modal opened={opened} onClose={() => navigate("/transactions")} size="50%">
+      <Text>{tx.txid}</Text>
+      <Text>{new Date(tx.timestamp).toLocaleTimeString()}</Text>
+      <Divider />
+      <Grid>
+        <Grid.Col span={6}>
+          <Text>Inputs:</Text>
+          {tx.inputs.length > 0 ? (
+            tx.inputs.map((i) => (
+              <>
+                <Anchor
+                  component={Link}
+                  to={`/transactions/${i.txid}`}
+                >{`txid: ${i.txid.slice(0, 10)}...${i.txid.slice(
+                  tx.txid.length - 11
+                )}`}</Anchor>
+                <Text>{`index: ${i.outputIndex}`}</Text>
+                <br />
+              </>
+            ))
+          ) : (
+            <Text>Block Reward</Text>
+          )}
+        </Grid.Col>
+        <Grid.Col span={6}>
+          <Text>Outputs:</Text>
+          {tx.outputs.map((o) => (
+            <>
+              <Text>{`Amount: ${o.amount}`}</Text>
+              <Text>{`To: ${o.address}`}</Text>
+              <br />
+            </>
+          ))}
+        </Grid.Col>
+      </Grid>
     </Modal>
   );
 }
