@@ -1,6 +1,14 @@
 /* eslint-disable react/jsx-props-no-spreading */
+/* eslint-disable react/require-default-props */
 import React from "react";
-import { Button, Group, NumberInput, Select, Title } from "@mantine/core";
+import {
+  Button,
+  Group,
+  NumberInput,
+  Select,
+  TextInput,
+  Title,
+} from "@mantine/core";
 import { useForm } from "@mantine/hooks";
 
 function CreateTransaction({
@@ -9,8 +17,8 @@ function CreateTransaction({
   closeForm,
 }: {
   createTransaction: (toAddress: string, amount: number) => boolean;
-  nodeList: { value: string; label: string }[];
-  closeForm: () => void;
+  nodeList?: { value: string; label: string }[];
+  closeForm?: () => void;
 }) {
   const form = useForm({
     initialValues: {
@@ -24,7 +32,7 @@ function CreateTransaction({
 
   const create = form.onSubmit(({ address, amount }) => {
     if (createTransaction(address, amount)) {
-      closeForm();
+      if (closeForm) closeForm();
       return true;
     }
     return false;
@@ -34,12 +42,21 @@ function CreateTransaction({
     <form onSubmit={create}>
       <Group direction="column">
         <Title order={4}>Create Transaction</Title>
-        <Select
-          required
-          label="Address"
-          {...form.getInputProps("address")}
-          data={nodeList}
-        />
+        {typeof nodeList !== "undefined" ? (
+          <Select
+            required
+            label="Address"
+            {...form.getInputProps("address")}
+            data={nodeList}
+          />
+        ) : (
+          <TextInput
+            required
+            label="Address"
+            {...form.getInputProps("address")}
+          />
+        )}
+
         <NumberInput
           required
           label="Amount"

@@ -13,6 +13,7 @@ import {
 import { Link } from "react-router-dom";
 import Simulation from "./components/dashboard/simulation/Simulation";
 import Live from "./components/dashboard/live/Live";
+import { BlockchainProvider } from "./components/dashboard/live/BlockchainContext";
 
 type Network = "Sim" | "Live";
 function App() {
@@ -67,7 +68,13 @@ function App() {
         </Header>
       }
     >
-      {network === "Sim" ? <Simulation /> : <Live />}
+      {network === "Sim" ? (
+        <Simulation />
+      ) : (
+        <BlockchainProvider>
+          <Live />
+        </BlockchainProvider>
+      )}
     </AppShell>
   );
 }

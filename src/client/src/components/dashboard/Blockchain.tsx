@@ -8,6 +8,7 @@ import {
   Title,
   Text,
   Anchor,
+  Button,
 } from "@mantine/core";
 import { Block } from "lib/blockchain";
 import { Link } from "react-router-dom";
@@ -52,7 +53,8 @@ function Arrow() {
   );
 }
 
-function BlockChain({ blocks }: { blocks: Block[] }) {
+// eslint-disable-next-line react/require-default-props
+function BlockChain({ blocks, mine }: { blocks: Block[]; mine?: () => void }) {
   const viewport = useRef<HTMLDivElement>(null);
   const elements: JSX.Element[] = [];
   blocks.forEach((b, index) => {
@@ -71,6 +73,7 @@ function BlockChain({ blocks }: { blocks: Block[] }) {
     <Container size="xl">
       <Center>
         <Title>Blocks</Title>
+        {mine && <Button onClick={mine}>Mine!</Button>}
       </Center>
       <ScrollArea viewportRef={viewport}>
         <div style={{ width: (BLOCK_WIDTH + ARROW_WIDTH) * blocks.length }}>
