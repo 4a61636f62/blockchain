@@ -1,22 +1,23 @@
 import React, { useState } from "react";
-import { Card, Container, Modal, ScrollArea, Text, Title } from "@mantine/core";
+import {
+  Anchor,
+  Card,
+  Container,
+  Modal,
+  ScrollArea,
+  Text,
+  Title,
+} from "@mantine/core";
 import { Transaction } from "lib/blockchain";
+import { Link } from "react-router-dom";
 
-function TransactionCard({
-  transaction,
-  setOpenTx,
-}: {
-  transaction: Transaction;
-  setOpenTx: React.Dispatch<React.SetStateAction<Transaction | null>>;
-}) {
+function TransactionCard({ transaction }: { transaction: Transaction }) {
   return (
-    <Card
-      withBorder
-      onClick={() => setOpenTx(transaction)}
-      style={{ cursor: "pointer" }}
-    >
+    <Card withBorder style={{ cursor: "pointer" }}>
       <Text>{new Date(transaction.timestamp).toLocaleTimeString()}</Text>
-      <Text>TxID: {transaction.txid}</Text>
+      <Anchor component={Link} to={`/transactions/${transaction.txid}`}>
+        TxID: {transaction.txid}
+      </Anchor>
       <Text>inputs: {transaction.inputs.length}</Text>
       <Text>outputs: {transaction.outputs.length}</Text>
     </Card>
@@ -37,7 +38,7 @@ function UnconfirmedTransactions({
       </Modal>
       <ScrollArea style={{ height: 500 }}>
         {transactions.map((t) => (
-          <TransactionCard transaction={t} key={t.txid} setOpenTx={setOpenTx} />
+          <TransactionCard transaction={t} key={t.txid} />
         ))}
       </ScrollArea>
     </Container>

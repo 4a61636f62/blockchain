@@ -34,7 +34,8 @@ function Simulation() {
     }
     setNodes(nodeMap);
     setNodeWallets(wallets);
-    setTransactions([]);
+    txRef.current = [];
+    setTransactions(txRef.current);
   };
 
   const mineBlock = useMemo(
@@ -140,10 +141,26 @@ function Simulation() {
           <Route index element={<Blocks blocks={blocks} />} />
           <Route path=":hash" element={<Blocks blocks={blocks} />} />
         </Route>
-        <Route
-          path="transactions"
-          element={<Transactions transactions={[]} />}
-        />
+        <Route path="transactions">
+          <Route
+            index
+            element={
+              <Transactions
+                confirmed={BlockchainUtils.getTransactions(blocks)}
+                unconfirmed={transactions}
+              />
+            }
+          />
+          <Route
+            path=":txid"
+            element={
+              <Transactions
+                confirmed={BlockchainUtils.getTransactions(blocks)}
+                unconfirmed={transactions}
+              />
+            }
+          />
+        </Route>
       </Route>
     </Routes>
   );

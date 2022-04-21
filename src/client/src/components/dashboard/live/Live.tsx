@@ -31,7 +31,7 @@ function Live() {
         <Route path="blocks" element={<Blocks blocks={[]} />} />
         <Route
           path="transactions"
-          element={<Transactions transactions={[]} />}
+          element={<Transactions confirmed={[]} unconfirmed={[]} />}
         />
       </Route>
     </Routes>
