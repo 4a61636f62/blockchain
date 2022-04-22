@@ -1,4 +1,10 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { Divider, Grid } from "@mantine/core";
 import { Route, Routes } from "react-router-dom";
 import { Wallet } from "lib/wallet";
@@ -11,11 +17,14 @@ import BlockChain from "../Blockchain";
 import Blocks from "../../blocks/Blocks";
 import Transactions from "../../transactions/Transactions";
 
+const TIMEOUT = 1000;
+
 function Simulation() {
   const [running, setRunning] = useState(false);
   const [autoTx, setAutoTx] = useState(false);
   const [nodes, setNodes] = useState(new Map<string, Wallet>());
   const [nodeWallets, setNodeWallets] = useState<Wallet[]>([]);
+  const blocksRef = useRef<Block[]>([]);
   const [blocks, setBlocks] = useState<Block[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const txRef = useRef<Transaction[]>([]);
@@ -36,69 +45,119 @@ function Simulation() {
     setNodeWallets(wallets);
     txRef.current = [];
     setTransactions(txRef.current);
+    blocksRef.current = [];
+    setBlocks(blocksRef.current);
   };
 
-  const mineBlock = useMemo(
-    () => (minerAddress: string) => {
+  const mineBlock = useCallback(
+    (minerAddress: string) => {
       let block: Block;
-      if (blocks.length === 0) {
+      if (blocksRef.current.length === 0) {
         block = BlockchainUtils.mineGenesisBlock(minerAddress);
       } else {
-        const txs = [...txRef.current];
-        txRef.current = [];
-        setTransactions(txRef.current);
         block = BlockchainUtils.mineBlock(
-          blocks[blocks.length - 1],
-          txs,
+          blocksRef.current[blocksRef.current.length - 1],
+          txRef.current,
           minerAddress
         );
+        txRef.current = [];
+        setTransactions(txRef.current);
       }
-      setBlocks([...blocks, block]);
+      blocksRef.current = [...blocksRef.current, block];
+      setBlocks(blocksRef.current);
     },
-    [blocks]
+    [blocksRef]
   );
 
-  const getRandomNode = useMemo(
-    () => () => nodeWallets[Math.floor(Math.random() * nodeWallets.length)],
-    [nodeWallets]
+  const balances = useMemo(
+    () => BlockchainUtils.getAddressBalances(blocksRef.current),
+    [blocksRef.current]
+  );
+
+  const unconfirmedBalances = useMemo(
+    () =>
+      BlockchainUtils.getAddressUnconfirmedBalances(
+        blocksRef.current,
+        txRef.current
+      ),
+    [blocksRef.current, txRef.current]
+  );
+
+  const getRandomNode = useCallback(
+    (withBalance: boolean = false) => {
+      const wallets = withBalance
+        ? nodeWallets.filter((w) => balances.has(w.address))
+        : nodeWallets;
+      return wallets.length > 0
+        ? wallets[Math.floor(Math.random() * wallets.length)]
+        : null;
+    },
+    [nodeWallets, balances, blocks]
   );
 
   const createTransaction = useMemo(
     () => (fromWallet: Wallet, toAddress: string, amount: number) => {
-      const tx = fromWallet.createTransaction(toAddress, amount, blocks);
-      if (tx) {
-        txRef.current = [...txRef.current, tx];
-        setTransactions(txRef.current);
-        return true;
+      const unconfirmedBalance = unconfirmedBalances.has(fromWallet.address)
+        ? unconfirmedBalances.get(fromWallet.address)
+        : 0;
+      const balance = balances.has(fromWallet.address)
+        ? balances.get(fromWallet.address)
+        : 0;
+      if (
+        typeof unconfirmedBalance !== "undefined" &&
+        typeof balance !== "undefined"
+      ) {
+        const tx = fromWallet.createTransaction(
+          toAddress,
+          amount,
+          blocksRef.current,
+          balance,
+          unconfirmedBalance
+        );
+        if (tx) {
+          txRef.current = [...txRef.current, tx];
+          setTransactions(txRef.current);
+          return true;
+        }
       }
       return false;
     },
-    [blocks]
+    [blocksRef, unconfirmedBalances]
   );
 
   useEffect(() => {
-    if (running) {
-      miningTimeout.current = setTimeout(() => {
-        mineBlock(getRandomNode().address);
-      }, 1000);
-    } else if (typeof miningTimeout.current !== "undefined") {
+    if (running && typeof miningTimeout.current === "undefined") {
+      miningTimeout.current = setInterval(() => {
+        if (autoTx) {
+          if (typeof txTimeout.current !== "undefined") {
+            clearInterval(txTimeout.current);
+          }
+          const noOfTxs = Math.floor(Math.random() * 10) + 1;
+          const TxTime = TIMEOUT / noOfTxs;
+          txTimeout.current = setInterval(() => {
+            const fromWallet = getRandomNode();
+            const toWallet = getRandomNode();
+            if (fromWallet !== null && toWallet !== null) {
+              const amount = 0;
+              createTransaction(fromWallet, toWallet.address, amount);
+            }
+          }, TxTime);
+        }
+        const minerWallet = getRandomNode();
+        if (minerWallet) {
+          mineBlock(minerWallet.address);
+        }
+      }, TIMEOUT);
+    }
+    if (!running && typeof miningTimeout.current !== "undefined") {
       clearTimeout(miningTimeout.current);
+      miningTimeout.current = undefined;
+      if (typeof txTimeout.current !== "undefined") {
+        clearInterval(txTimeout.current);
+        txTimeout.current = undefined;
+      }
     }
-  }, [running, blocks]);
-
-  useEffect(() => {
-    if (running && autoTx) {
-      txTimeout.current = setInterval(() => {
-        const fromWallet = getRandomNode();
-        const toAddress = getRandomNode().address;
-        const amount = 0;
-        createTransaction(fromWallet, toAddress, amount);
-      }, 100);
-    } else if (typeof txTimeout.current !== "undefined") {
-      clearTimeout(txTimeout.current);
-      txTimeout.current = undefined;
-    }
-  }, [running, autoTx]);
+  }, [running, autoTx, blocksRef, getRandomNode, createTransaction]);
 
   return (
     <Routes>
@@ -122,6 +181,8 @@ function Simulation() {
                   <Nodes
                     nodes={nodes}
                     blocks={blocks}
+                    balances={balances}
+                    unconfirmedBalances={unconfirmedBalances}
                     transactions={transactions}
                     mineBlock={mineBlock}
                     createTransaction={createTransaction}

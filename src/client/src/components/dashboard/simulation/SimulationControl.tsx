@@ -52,6 +52,7 @@ function SimulationControl({
             label="Auto Transactions"
             checked={autoTx}
             onChange={(e) => setAutoTx(e.currentTarget.checked)}
+            disabled={running}
           />
           <Button type="submit" disabled={running}>
             New
