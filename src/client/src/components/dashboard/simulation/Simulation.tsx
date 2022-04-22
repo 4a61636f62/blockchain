@@ -180,10 +180,8 @@ function Simulation() {
                 <Grid.Col span={6}>
                   <Nodes
                     nodes={nodes}
-                    blocks={blocks}
                     balances={balances}
                     unconfirmedBalances={unconfirmedBalances}
-                    transactions={transactions}
                     mineBlock={mineBlock}
                     createTransaction={createTransaction}
                     running={running}
