@@ -42,19 +42,32 @@ function Live() {
 
   const createTransaction = useCallback(
     (toAddress: string, amount: number) => {
-      const tx = state.wallet.createTransaction(
-        toAddress,
-        amount,
-        state.blocks
-      );
-      if (tx) {
-        dispatch({ type: "add-transaction", transaction: tx });
-        dispatch({ type: "send-transaction-announcement", transaction: tx });
-        return true;
+      const unconfirmedBalance = unconfirmedBalances.has(state.wallet.address)
+        ? unconfirmedBalances.get(state.wallet.address)
+        : 0;
+      const balance = balances.has(state.wallet.address)
+        ? balances.get(state.wallet.address)
+        : 0;
+      if (
+        typeof unconfirmedBalance !== "undefined" &&
+        typeof balance !== "undefined"
+      ) {
+        const tx = state.wallet.createTransaction(
+          toAddress,
+          amount,
+          state.blocks,
+          balance,
+          unconfirmedBalance
+        );
+        if (tx) {
+          dispatch({ type: "add-transaction", transaction: tx });
+          dispatch({ type: "send-transaction-announcement", transaction: tx });
+          return true;
+        }
       }
       return false;
     },
-    [state]
+    [state, balances]
   );
 
   return (

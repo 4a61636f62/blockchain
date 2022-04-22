@@ -97,8 +97,8 @@ function Nodes({
   ) => boolean;
   running: boolean;
 }) {
-  const balances = BlockchainUtils.getAddressBalances(blocks);
-  const unconfirmedBalances = BlockchainUtils.getAddressUnconfirmedBalances(
+  const balances2 = BlockchainUtils.getAddressBalances(blocks);
+  const unconfirmedBalances2 = BlockchainUtils.getAddressUnconfirmedBalances(
     blocks,
     transactions
   );
@@ -108,8 +108,8 @@ function Nodes({
       wallet={w}
       nodes={nodes}
       key={w.address}
-      balance={balances.get(w.address)}
-      unconfirmedBalance={unconfirmedBalances.get(w.address)}
+      balance={balances2.get(w.address)}
+      unconfirmedBalance={unconfirmedBalances2.get(w.address)}
       mineBlock={mineBlock}
       createTransaction={(toAddress: string, amount: number) =>
         createTransaction(w, toAddress, amount)

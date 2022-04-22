@@ -35,9 +35,16 @@ export class Wallet {
   public createTransaction(
     outputAddress: BlockchainAddress,
     amountToSend: number,
-    blocks: Block[]
+    blocks: Block[],
+    balance: number,
+    unconfirmedBalance: number
   ): Transaction | null {
     const utxo = BlockchainUtils.getUTXO(blocks);
+
+    if (balance + unconfirmedBalance < amountToSend) {
+      return null;
+    }
+
     const [inputs, change] = this.getInputsForTransaction(amountToSend, utxo);
     if (change < 0) {
       return null;
@@ -64,41 +71,6 @@ export class Wallet {
       txid: BlockchainUtils.createTXID(inputs, outputs, timestamp),
       timestamp,
     };
-  }
-
-  public getBalance(
-    blocks: Block[],
-    unconfirmed: Transaction[]
-  ): [number, number] {
-    let balance = 0;
-    let unconfirmedBalance = 0;
-    const utxoMap = BlockchainUtils.getUTXO(blocks);
-    const utxo = Array.from(utxoMap.values()).flat();
-
-    utxo.forEach((output) => {
-      if (output.address === this.address) {
-        balance += output.amount;
-      }
-    });
-
-    unconfirmed.forEach((tx) => {
-      tx.inputs.forEach((input) => {
-        const outputs = utxoMap.get(input.txid);
-        if (typeof outputs !== "undefined") {
-          outputs.forEach((output) => {
-            if (output.address === this.address) {
-              unconfirmedBalance -= output.amount;
-            }
-          });
-        }
-        tx.outputs.forEach((output) => {
-          if (output.address === this.address) {
-            unconfirmedBalance += output.amount;
-          }
-        });
-      });
-    });
-    return [balance, unconfirmedBalance];
   }
 
   private getInputsForTransaction(
