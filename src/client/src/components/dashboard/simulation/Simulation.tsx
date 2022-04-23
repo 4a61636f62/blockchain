@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Divider, Grid } from "@mantine/core";
 import { Route, Routes } from "react-router-dom";
 import { Wallet } from "lib/wallet";
@@ -109,8 +103,8 @@ function Simulation() {
     [nodeWallets]
   );
 
-  const createTransaction = useMemo(
-    () => (fromWallet: Wallet, toAddress: string, amount: number) => {
+  const createTransaction = useCallback(
+    (fromWallet: Wallet, toAddress: string, amount: number) => {
       const unconfirmedBalance = balancesRef.current.unconfirmed.has(
         fromWallet.address
       )
@@ -139,7 +133,7 @@ function Simulation() {
       }
       return false;
     },
-    [blocksRef, balancesRef]
+    []
   );
 
   useEffect(() => {
@@ -155,8 +149,13 @@ function Simulation() {
             const fromWallet = getRandomNode(true);
             const toWallet = getRandomNode();
             if (fromWallet !== null && toWallet !== null) {
-              const amount = 10;
-              createTransaction(fromWallet, toWallet.address, amount);
+              const balance = balancesRef.current.confirmed.get(
+                fromWallet.address
+              );
+              if (typeof balance !== "undefined") {
+                const amount = Math.floor(Math.random() * balance) + 1;
+                createTransaction(fromWallet, toWallet.address, amount);
+              }
             }
           }, TxTime);
         }
