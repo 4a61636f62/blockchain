@@ -10,8 +10,6 @@ import {
   Modal,
 } from "@mantine/core";
 import { Wallet } from "lib/wallet";
-import { BlockchainUtils } from "lib/blockchain-utils";
-import { Block, Transaction } from "lib/blockchain";
 import CreateTransaction from "./CreateTransaction";
 
 function Node({
@@ -80,15 +78,15 @@ function Node({
 
 function Nodes({
   nodes,
-  blocks,
-  transactions,
+  balances,
+  unconfirmedBalances,
   mineBlock,
   createTransaction,
   running,
 }: {
   nodes: Map<string, Wallet>;
-  blocks: Block[];
-  transactions: Transaction[];
+  balances: Map<string, number>;
+  unconfirmedBalances: Map<string, number>;
   mineBlock: (minerAddress: string) => void;
   createTransaction: (
     fromWallet: Wallet,
@@ -97,11 +95,6 @@ function Nodes({
   ) => boolean;
   running: boolean;
 }) {
-  const balances = BlockchainUtils.getAddressBalances(blocks);
-  const unconfirmedBalances = BlockchainUtils.getAddressUnconfirmedBalances(
-    blocks,
-    transactions
-  );
   const nodeCards = Array.from(nodes.entries()).map(([name, w]) => (
     <Node
       name={name}

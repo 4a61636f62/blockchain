@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Divider, Grid } from "@mantine/core";
 import { Route, Routes } from "react-router-dom";
 import { Wallet } from "lib/wallet";
@@ -11,16 +11,27 @@ import BlockChain from "../Blockchain";
 import Blocks from "../../blocks/Blocks";
 import Transactions from "../../transactions/Transactions";
 
+const TIMEOUT = 1000;
+
 function Simulation() {
   const [running, setRunning] = useState(false);
   const [autoTx, setAutoTx] = useState(false);
   const [nodes, setNodes] = useState(new Map<string, Wallet>());
   const [nodeWallets, setNodeWallets] = useState<Wallet[]>([]);
+  const blocksRef = useRef<Block[]>([]);
   const [blocks, setBlocks] = useState<Block[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const txRef = useRef<Transaction[]>([]);
   const miningTimeout = useRef<NodeJS.Timeout>();
   const txTimeout = useRef<NodeJS.Timeout>();
+  const balancesRef = useRef<{
+    confirmed: Map<string, number>;
+    unconfirmed: Map<string, number>;
+  }>({
+    confirmed: new Map<string, number>(),
+    unconfirmed: new Map<string, number>(),
+  });
+  const [balances, setBalances] = useState(balancesRef.current);
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const createSimulation = (noOfNodes: number, miningDifficulty: number) => {
@@ -36,69 +47,133 @@ function Simulation() {
     setNodeWallets(wallets);
     txRef.current = [];
     setTransactions(txRef.current);
+    blocksRef.current = [];
+    setBlocks(blocksRef.current);
   };
 
-  const mineBlock = useMemo(
-    () => (minerAddress: string) => {
-      let block: Block;
-      if (blocks.length === 0) {
-        block = BlockchainUtils.mineGenesisBlock(minerAddress);
-      } else {
-        const txs = [...txRef.current];
-        txRef.current = [];
-        setTransactions(txRef.current);
-        block = BlockchainUtils.mineBlock(
-          blocks[blocks.length - 1],
-          txs,
-          minerAddress
-        );
-      }
-      setBlocks([...blocks, block]);
-    },
-    [blocks]
-  );
+  const updateConfirmedBalances = useCallback(() => {
+    balancesRef.current = {
+      ...balancesRef.current,
+      confirmed: BlockchainUtils.getAddressBalances(blocksRef.current),
+    };
+    setBalances(balancesRef.current);
+  }, []);
 
-  const getRandomNode = useMemo(
-    () => () => nodeWallets[Math.floor(Math.random() * nodeWallets.length)],
+  const updateUnconfirmedBalances = useCallback(() => {
+    balancesRef.current = {
+      ...balancesRef.current,
+      unconfirmed: BlockchainUtils.getAddressUnconfirmedBalances(
+        blocksRef.current,
+        txRef.current
+      ),
+    };
+    setBalances(balancesRef.current);
+  }, []);
+
+  const mineBlock = useCallback((minerAddress: string) => {
+    let block: Block;
+    if (blocksRef.current.length === 0) {
+      block = BlockchainUtils.mineGenesisBlock(minerAddress);
+    } else {
+      block = BlockchainUtils.mineBlock(
+        blocksRef.current[blocksRef.current.length - 1],
+        txRef.current,
+        minerAddress
+      );
+      txRef.current = [];
+      setTransactions(txRef.current);
+    }
+    blocksRef.current = [...blocksRef.current, block];
+    setBlocks(blocksRef.current);
+    updateConfirmedBalances();
+    updateUnconfirmedBalances();
+  }, []);
+
+  const getRandomNode = useCallback(
+    (withBalance: boolean = false) => {
+      const wallets = withBalance
+        ? nodeWallets.filter((w) =>
+            balancesRef.current.confirmed.has(w.address)
+          )
+        : nodeWallets;
+      return wallets.length > 0
+        ? wallets[Math.floor(Math.random() * wallets.length)]
+        : null;
+    },
     [nodeWallets]
   );
 
-  const createTransaction = useMemo(
-    () => (fromWallet: Wallet, toAddress: string, amount: number) => {
-      const tx = fromWallet.createTransaction(toAddress, amount, blocks);
-      if (tx) {
-        txRef.current = [...txRef.current, tx];
-        setTransactions(txRef.current);
-        return true;
+  const createTransaction = useCallback(
+    (fromWallet: Wallet, toAddress: string, amount: number) => {
+      const unconfirmedBalance = balancesRef.current.unconfirmed.has(
+        fromWallet.address
+      )
+        ? balancesRef.current.unconfirmed.get(fromWallet.address)
+        : 0;
+      const balance = balancesRef.current.confirmed.has(fromWallet.address)
+        ? balancesRef.current.confirmed.get(fromWallet.address)
+        : 0;
+      if (
+        typeof unconfirmedBalance !== "undefined" &&
+        typeof balance !== "undefined"
+      ) {
+        const tx = fromWallet.createTransaction(
+          toAddress,
+          amount,
+          blocksRef.current,
+          balance,
+          unconfirmedBalance
+        );
+        if (tx) {
+          txRef.current = [...txRef.current, tx];
+          setTransactions(txRef.current);
+          updateUnconfirmedBalances();
+          return true;
+        }
       }
       return false;
     },
-    [blocks]
+    []
   );
 
   useEffect(() => {
-    if (running) {
-      miningTimeout.current = setTimeout(() => {
-        mineBlock(getRandomNode().address);
-      }, 1000);
-    } else if (typeof miningTimeout.current !== "undefined") {
+    if (running && typeof miningTimeout.current === "undefined") {
+      miningTimeout.current = setInterval(() => {
+        if (autoTx) {
+          if (typeof txTimeout.current !== "undefined") {
+            clearInterval(txTimeout.current);
+          }
+          const noOfTxs = Math.floor(Math.random() * 10) + 1;
+          const TxTime = TIMEOUT / noOfTxs;
+          txTimeout.current = setInterval(() => {
+            const fromWallet = getRandomNode(true);
+            const toWallet = getRandomNode();
+            if (fromWallet !== null && toWallet !== null) {
+              const balance = balancesRef.current.confirmed.get(
+                fromWallet.address
+              );
+              if (typeof balance !== "undefined") {
+                const amount = Math.floor(Math.random() * balance) + 1;
+                createTransaction(fromWallet, toWallet.address, amount);
+              }
+            }
+          }, TxTime);
+        }
+        const minerWallet = getRandomNode();
+        if (minerWallet) {
+          mineBlock(minerWallet.address);
+        }
+      }, TIMEOUT);
+    }
+    if (!running && typeof miningTimeout.current !== "undefined") {
       clearTimeout(miningTimeout.current);
+      miningTimeout.current = undefined;
+      if (typeof txTimeout.current !== "undefined") {
+        clearInterval(txTimeout.current);
+        txTimeout.current = undefined;
+      }
     }
-  }, [running, blocks]);
-
-  useEffect(() => {
-    if (running && autoTx) {
-      txTimeout.current = setInterval(() => {
-        const fromWallet = getRandomNode();
-        const toAddress = getRandomNode().address;
-        const amount = 0;
-        createTransaction(fromWallet, toAddress, amount);
-      }, 100);
-    } else if (typeof txTimeout.current !== "undefined") {
-      clearTimeout(txTimeout.current);
-      txTimeout.current = undefined;
-    }
-  }, [running, autoTx]);
+  }, [running, autoTx, blocksRef, getRandomNode, createTransaction]);
 
   return (
     <Routes>
@@ -121,8 +196,8 @@ function Simulation() {
                 <Grid.Col span={6}>
                   <Nodes
                     nodes={nodes}
-                    blocks={blocks}
-                    transactions={transactions}
+                    balances={balances.confirmed}
+                    unconfirmedBalances={balances.unconfirmed}
                     mineBlock={mineBlock}
                     createTransaction={createTransaction}
                     running={running}

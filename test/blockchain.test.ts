@@ -16,7 +16,7 @@ describe("Blockchain Node", () => {
     }
 
     const wallet2 = new Wallet();
-    const tx = wallet1.createTransaction(wallet2.address, 100, blocks);
+    const tx = wallet1.createTransaction(wallet2.address, 100, blocks, 0, 0);
     expect(tx).not.toBeNull();
     if (tx) {
       block = await BlockchainUtils.mineBlock(blocks[0], [tx], wallet1.address);
