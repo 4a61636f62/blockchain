@@ -30,6 +30,14 @@ function Simulation() {
   const txRef = useRef<Transaction[]>([]);
   const miningTimeout = useRef<NodeJS.Timeout>();
   const txTimeout = useRef<NodeJS.Timeout>();
+  const balancesRef = useRef<{
+    confirmed: Map<string, number>;
+    unconfirmed: Map<string, number>;
+  }>({
+    confirmed: new Map<string, number>(),
+    unconfirmed: new Map<string, number>(),
+  });
+  const [balances, setBalances] = useState(balancesRef.current);
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const createSimulation = (noOfNodes: number, miningDifficulty: number) => {
@@ -49,59 +57,67 @@ function Simulation() {
     setBlocks(blocksRef.current);
   };
 
-  const mineBlock = useCallback(
-    (minerAddress: string) => {
-      let block: Block;
-      if (blocksRef.current.length === 0) {
-        block = BlockchainUtils.mineGenesisBlock(minerAddress);
-      } else {
-        block = BlockchainUtils.mineBlock(
-          blocksRef.current[blocksRef.current.length - 1],
-          txRef.current,
-          minerAddress
-        );
-        txRef.current = [];
-        setTransactions(txRef.current);
-      }
-      blocksRef.current = [...blocksRef.current, block];
-      setBlocks(blocksRef.current);
-    },
-    [blocksRef]
-  );
+  const updateConfirmedBalances = useCallback(() => {
+    balancesRef.current = {
+      ...balancesRef.current,
+      confirmed: BlockchainUtils.getAddressBalances(blocksRef.current),
+    };
+    setBalances(balancesRef.current);
+  }, []);
 
-  const balances = useMemo(
-    () => BlockchainUtils.getAddressBalances(blocksRef.current),
-    [blocksRef.current]
-  );
-
-  const unconfirmedBalances = useMemo(
-    () =>
-      BlockchainUtils.getAddressUnconfirmedBalances(
+  const updateUnconfirmedBalances = useCallback(() => {
+    balancesRef.current = {
+      ...balancesRef.current,
+      unconfirmed: BlockchainUtils.getAddressUnconfirmedBalances(
         blocksRef.current,
         txRef.current
       ),
-    [blocksRef.current, txRef.current]
-  );
+    };
+    setBalances(balancesRef.current);
+  }, []);
+
+  const mineBlock = useCallback((minerAddress: string) => {
+    let block: Block;
+    if (blocksRef.current.length === 0) {
+      block = BlockchainUtils.mineGenesisBlock(minerAddress);
+    } else {
+      block = BlockchainUtils.mineBlock(
+        blocksRef.current[blocksRef.current.length - 1],
+        txRef.current,
+        minerAddress
+      );
+      txRef.current = [];
+      setTransactions(txRef.current);
+    }
+    blocksRef.current = [...blocksRef.current, block];
+    setBlocks(blocksRef.current);
+    updateConfirmedBalances();
+    updateUnconfirmedBalances();
+  }, []);
 
   const getRandomNode = useCallback(
     (withBalance: boolean = false) => {
       const wallets = withBalance
-        ? nodeWallets.filter((w) => balances.has(w.address))
+        ? nodeWallets.filter((w) =>
+            balancesRef.current.confirmed.has(w.address)
+          )
         : nodeWallets;
       return wallets.length > 0
         ? wallets[Math.floor(Math.random() * wallets.length)]
         : null;
     },
-    [nodeWallets, balances, blocks]
+    [nodeWallets]
   );
 
   const createTransaction = useMemo(
     () => (fromWallet: Wallet, toAddress: string, amount: number) => {
-      const unconfirmedBalance = unconfirmedBalances.has(fromWallet.address)
-        ? unconfirmedBalances.get(fromWallet.address)
+      const unconfirmedBalance = balancesRef.current.unconfirmed.has(
+        fromWallet.address
+      )
+        ? balancesRef.current.unconfirmed.get(fromWallet.address)
         : 0;
-      const balance = balances.has(fromWallet.address)
-        ? balances.get(fromWallet.address)
+      const balance = balancesRef.current.confirmed.has(fromWallet.address)
+        ? balancesRef.current.confirmed.get(fromWallet.address)
         : 0;
       if (
         typeof unconfirmedBalance !== "undefined" &&
@@ -117,12 +133,13 @@ function Simulation() {
         if (tx) {
           txRef.current = [...txRef.current, tx];
           setTransactions(txRef.current);
+          updateUnconfirmedBalances();
           return true;
         }
       }
       return false;
     },
-    [blocksRef, unconfirmedBalances]
+    [blocksRef, balancesRef]
   );
 
   useEffect(() => {
@@ -135,10 +152,10 @@ function Simulation() {
           const noOfTxs = Math.floor(Math.random() * 10) + 1;
           const TxTime = TIMEOUT / noOfTxs;
           txTimeout.current = setInterval(() => {
-            const fromWallet = getRandomNode();
+            const fromWallet = getRandomNode(true);
             const toWallet = getRandomNode();
             if (fromWallet !== null && toWallet !== null) {
-              const amount = 0;
+              const amount = 10;
               createTransaction(fromWallet, toWallet.address, amount);
             }
           }, TxTime);
@@ -180,8 +197,8 @@ function Simulation() {
                 <Grid.Col span={6}>
                   <Nodes
                     nodes={nodes}
-                    balances={balances}
-                    unconfirmedBalances={unconfirmedBalances}
+                    balances={balances.confirmed}
+                    unconfirmedBalances={balances.unconfirmed}
                     mineBlock={mineBlock}
                     createTransaction={createTransaction}
                     running={running}
