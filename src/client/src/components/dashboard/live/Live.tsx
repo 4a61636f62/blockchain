@@ -27,7 +27,7 @@ function Live() {
     setMining(true);
     let block: Block;
     if (state.blocks.length === 0) {
-      block = BlockchainUtils.mineGenesisBlock(state.wallet.address);
+      block = BlockchainUtils.mineGenesisBlock(state.wallet.address, 1);
     } else {
       block = BlockchainUtils.mineBlock(
         state.blocks[state.blocks.length - 1],

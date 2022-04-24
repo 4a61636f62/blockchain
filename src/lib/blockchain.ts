@@ -8,6 +8,7 @@ export type UnminedBlock = {
 export type Block = UnminedBlock & {
   nonce: number;
   hash: string;
+  difficulty: number;
 };
 
 type TXID = string;
