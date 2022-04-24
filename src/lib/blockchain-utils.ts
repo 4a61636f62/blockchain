@@ -8,16 +8,17 @@ import {
   TransactionOutput,
 } from "./blockchain";
 
-const HASH_REQUIREMENT = "0";
-
 export abstract class BlockchainUtils {
-  static mineGenesisBlock(minerAddress: string): Block {
-    return BlockchainUtils.mine({
-      prevHash: "0",
-      timestamp: Date.now(),
-      txs: [this.createBlockReward(minerAddress)],
-      minerAddress,
-    });
+  static mineGenesisBlock(minerAddress: string, difficulty: number): Block {
+    return BlockchainUtils.mine(
+      {
+        prevHash: "0",
+        timestamp: Date.now(),
+        txs: [this.createBlockReward(minerAddress)],
+        minerAddress,
+      },
+      difficulty
+    );
   }
 
   static mineBlock(
@@ -25,12 +26,15 @@ export abstract class BlockchainUtils {
     txs: Transaction[],
     minerAddress: string
   ): Block {
-    return BlockchainUtils.mine({
-      prevHash: prevBlock.hash,
-      timestamp: Date.now(),
-      txs: [...txs, this.createBlockReward(minerAddress)],
-      minerAddress,
-    });
+    return BlockchainUtils.mine(
+      {
+        prevHash: prevBlock.hash,
+        timestamp: Date.now(),
+        txs: [...txs, this.createBlockReward(minerAddress)],
+        minerAddress,
+      },
+      prevBlock.difficulty
+    );
   }
 
   static validateBlock(block: Block, prevHash: string): boolean {
@@ -124,14 +128,14 @@ export abstract class BlockchainUtils {
     return txs;
   }
 
-  private static mine(unminedBlock: UnminedBlock): Block {
+  private static mine(unminedBlock: UnminedBlock, difficulty: number): Block {
     let hash = "";
     let nonce = 0;
 
     do {
       nonce += 1;
       hash = BlockchainUtils.hashBlock(unminedBlock, nonce);
-    } while (!hash.startsWith(HASH_REQUIREMENT));
+    } while (!hash.startsWith("0".repeat(difficulty)));
 
     return {
       prevHash: unminedBlock.prevHash,
@@ -140,6 +144,7 @@ export abstract class BlockchainUtils {
       minerAddress: unminedBlock.minerAddress,
       hash,
       nonce,
+      difficulty,
     };
   }
 

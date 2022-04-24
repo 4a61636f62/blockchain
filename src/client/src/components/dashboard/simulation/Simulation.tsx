@@ -32,6 +32,7 @@ function Simulation() {
     unconfirmed: new Map<string, number>(),
   });
   const [balances, setBalances] = useState(balancesRef.current);
+  const [difficulty, setDifficulty] = useState(1);
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const createSimulation = (noOfNodes: number, miningDifficulty: number) => {
@@ -49,6 +50,7 @@ function Simulation() {
     setTransactions(txRef.current);
     blocksRef.current = [];
     setBlocks(blocksRef.current);
+    setDifficulty(miningDifficulty);
   };
 
   const updateConfirmedBalances = useCallback(() => {
@@ -70,24 +72,27 @@ function Simulation() {
     setBalances(balancesRef.current);
   }, []);
 
-  const mineBlock = useCallback((minerAddress: string) => {
-    let block: Block;
-    if (blocksRef.current.length === 0) {
-      block = BlockchainUtils.mineGenesisBlock(minerAddress);
-    } else {
-      block = BlockchainUtils.mineBlock(
-        blocksRef.current[blocksRef.current.length - 1],
-        txRef.current,
-        minerAddress
-      );
-      txRef.current = [];
-      setTransactions(txRef.current);
-    }
-    blocksRef.current = [...blocksRef.current, block];
-    setBlocks(blocksRef.current);
-    updateConfirmedBalances();
-    updateUnconfirmedBalances();
-  }, []);
+  const mineBlock = useCallback(
+    (minerAddress: string) => {
+      let block: Block;
+      if (blocksRef.current.length === 0) {
+        block = BlockchainUtils.mineGenesisBlock(minerAddress, difficulty);
+      } else {
+        block = BlockchainUtils.mineBlock(
+          blocksRef.current[blocksRef.current.length - 1],
+          txRef.current,
+          minerAddress
+        );
+        txRef.current = [];
+        setTransactions(txRef.current);
+      }
+      blocksRef.current = [...blocksRef.current, block];
+      setBlocks(blocksRef.current);
+      updateConfirmedBalances();
+      updateUnconfirmedBalances();
+    },
+    [difficulty]
+  );
 
   const getRandomNode = useCallback(
     (withBalance: boolean = false) => {
