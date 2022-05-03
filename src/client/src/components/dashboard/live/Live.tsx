@@ -54,9 +54,7 @@ function Live() {
         const tx = state.wallet.createTransaction(
           toAddress,
           amount,
-          state.blocks,
-          balance,
-          unconfirmedBalance
+          state.blocks
         );
         if (tx) {
           dispatch({ type: "add-transaction", transaction: tx });

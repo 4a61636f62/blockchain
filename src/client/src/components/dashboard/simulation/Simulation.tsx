@@ -124,9 +124,7 @@ function Simulation() {
         const tx = fromWallet.createTransaction(
           toAddress,
           amount,
-          blocksRef.current,
-          balance,
-          unconfirmedBalance
+          blocksRef.current
         );
         if (tx) {
           txRef.current = [...txRef.current, tx];

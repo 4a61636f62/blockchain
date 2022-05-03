@@ -35,8 +35,8 @@ export function hashBlock(block: UnminedBlock, nonce: number): string {
     block.prevHash +
     block.timestamp +
     JSON.stringify(block.txs) +
-    nonce +
-    block.minerAddress;
+    block.minerAddress +
+    nonce;
   return sha256(data).toString(Hex);
 }
 

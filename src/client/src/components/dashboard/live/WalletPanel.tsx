@@ -35,7 +35,11 @@ function WalletPanel({
         </Grid.Col>
         <Grid.Col span={3} />
         <Grid.Col span={6}>
-          <CreateTransaction createTransaction={createTransaction} />
+          <CreateTransaction
+            createTransaction={createTransaction}
+            balance={balance}
+            unconfirmedBalance={unconfirmedBalance}
+          />
         </Grid.Col>
         <Grid.Col span={6} />
         <Grid.Col span={3} />

@@ -9,24 +9,42 @@ import {
   TextInput,
   Title,
 } from "@mantine/core";
-import { useForm } from "@mantine/hooks";
+import { useForm } from "@mantine/form";
 
 function CreateTransaction({
   createTransaction,
   nodeList,
   closeForm,
+  balance,
+  unconfirmedBalance,
 }: {
   createTransaction: (toAddress: string, amount: number) => boolean;
   nodeList?: { value: string; label: string }[];
   closeForm?: () => void;
+  balance: number | undefined;
+  unconfirmedBalance: number | undefined;
 }) {
+  const validateAmount = (amount: number) => {
+    if (amount <= 0) {
+      return "Must be greater than 0";
+    }
+    if (
+      !balance ||
+      amount > balance ||
+      (balance && unconfirmedBalance && amount > balance + unconfirmedBalance)
+    ) {
+      return "Insufficient Balance";
+    }
+    return null;
+  };
+
   const form = useForm({
     initialValues: {
       address: "",
       amount: 0,
     },
-    validationRules: {
-      amount: (a) => a > 0,
+    validate: {
+      amount: validateAmount,
     },
   });
 

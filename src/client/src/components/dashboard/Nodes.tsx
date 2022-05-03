@@ -47,6 +47,8 @@ function Node({
           createTransaction={createTransaction}
           nodeList={nodeList}
           closeForm={() => setOpened(false)}
+          balance={balance}
+          unconfirmedBalance={unconfirmedBalance}
         />
       </Modal>
       <Grid>
