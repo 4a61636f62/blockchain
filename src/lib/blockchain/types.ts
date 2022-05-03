@@ -11,17 +11,15 @@ export type Block = UnminedBlock & {
   difficulty: number;
 };
 
-type TXID = string;
-
 export type Transaction = {
-  txid: TXID;
+  txid: string;
   inputs: TransactionInput[];
   outputs: TransactionOutput[];
   timestamp: number;
 };
 
 export type TransactionInput = {
-  txid: TXID;
+  txid: string;
   outputIndex: number;
   signature: {
     r: string;

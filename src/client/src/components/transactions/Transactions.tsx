@@ -10,10 +10,14 @@ import {
   Text,
   Title,
 } from "@mantine/core";
-import { Transaction } from "lib/blockchain";
+import * as Blockchain from "lib/blockchain";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
-export function TransactionRow({ transaction }: { transaction: Transaction }) {
+export function TransactionRow({
+  transaction,
+}: {
+  transaction: Blockchain.Transaction;
+}) {
   return (
     // format transactions and convert timestamp to local time
     <tr>
@@ -33,8 +37,8 @@ function TransactionModal({
   opened,
   inputTxs,
 }: {
-  tx: Transaction;
-  inputTxs: Map<string, Transaction>;
+  tx: Blockchain.Transaction;
+  inputTxs: Map<string, Blockchain.Transaction>;
   opened: boolean;
 }) {
   const navigate = useNavigate();
@@ -98,17 +102,19 @@ function Transactions({
   confirmed,
   unconfirmed,
 }: {
-  confirmed: Transaction[];
-  unconfirmed: Transaction[];
+  confirmed: Blockchain.Transaction[];
+  unconfirmed: Blockchain.Transaction[];
 }) {
   const txs = [...[...unconfirmed].reverse(), ...[...confirmed].reverse()];
   const [page, setPage] = useState(1);
   const { txid } = useParams();
 
-  const [openTx, setOpenTx] = useState<Transaction | undefined>(undefined);
+  const [openTx, setOpenTx] = useState<Blockchain.Transaction | undefined>(
+    undefined
+  );
 
   const txMap = useMemo(() => {
-    const map = new Map<string, Transaction>();
+    const map = new Map<string, Blockchain.Transaction>();
     txs.forEach((tx) => {
       map.set(tx.txid, tx);
     });
@@ -126,8 +132,8 @@ function Transactions({
   }, [txid, confirmed, unconfirmed]);
 
   const getInputTxs = useCallback(
-    (tx: Transaction) => {
-      const inputTxs = new Map<string, Transaction>();
+    (tx: Blockchain.Transaction) => {
+      const inputTxs = new Map<string, Blockchain.Transaction>();
       tx.inputs.forEach((input) => {
         const inputTx = txMap.get(input.txid);
         if (typeof inputTx !== "undefined") {

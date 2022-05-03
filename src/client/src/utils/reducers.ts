@@ -1,21 +1,22 @@
-import { Block, Transaction } from "lib/blockchain";
 import { Message } from "lib/message";
-import { BlockchainUtils } from "lib/blockchain-utils";
-import { Wallet } from "lib/wallet";
+import * as Blockchain from "lib/blockchain/";
 import { BlockchainClient } from "../services/blockchain-client";
 
 export type State = {
   client: BlockchainClient;
-  blocks: Block[];
-  transactions: Transaction[];
-  wallet: Wallet;
+  blocks: Blockchain.Block[];
+  transactions: Blockchain.Transaction[];
+  wallet: Blockchain.Wallet;
 };
 
 export type Action =
-  | { type: "add-block"; block: Block }
-  | { type: "add-transaction"; transaction: Transaction }
-  | { type: "send-block-announcement"; block: Block }
-  | { type: "send-transaction-announcement"; transaction: Transaction }
+  | { type: "add-block"; block: Blockchain.Block }
+  | { type: "add-transaction"; transaction: Blockchain.Transaction }
+  | { type: "send-block-announcement"; block: Blockchain.Block }
+  | {
+      type: "send-transaction-announcement";
+      transaction: Blockchain.Transaction;
+    }
   | { type: "send-chain-request" }
   | { type: "handle-block-announcement"; message: Message }
   | { type: "handle-transaction-announcement"; message: Message }
@@ -23,9 +24,9 @@ export type Action =
   | { type: "handle-chain-response"; message: Message };
 
 const removeConfirmedTransactions = (
-  transactions: Transaction[],
-  block: Block
-): Transaction[] =>
+  transactions: Blockchain.Transaction[],
+  block: Blockchain.Block
+): Blockchain.Transaction[] =>
   transactions.filter((t) => {
     for (let i = 0; i < block.txs.length; i += 1) {
       if (block.txs[i].txid === t.txid) {
@@ -35,23 +36,26 @@ const removeConfirmedTransactions = (
     return true;
   });
 
-const addBlock = (state: State, block: Block): State => ({
+const addBlock = (state: State, block: Blockchain.Block): State => ({
   ...state,
   blocks: [...state.blocks, block],
   transactions: removeConfirmedTransactions(state.transactions, block),
 });
 
-const addTransaction = (state: State, transaction: Transaction): State => ({
+const addTransaction = (
+  state: State,
+  transaction: Blockchain.Transaction
+): State => ({
   ...state,
   transactions: [...state.transactions, transaction],
 });
 
 const handleBlockAnnouncement = (state: State, message: Message): State => {
   if (typeof message.payload !== "undefined") {
-    const block = JSON.parse(message.payload) as Block;
+    const block = JSON.parse(message.payload) as Blockchain.Block;
     if (
       state.blocks.length < 1 ||
-      BlockchainUtils.validateBlock(
+      Blockchain.validateBlock(
         block,
         state.blocks[state.blocks.length - 1].hash
       )
@@ -67,14 +71,14 @@ const handleTransactionAnnouncement = (
   message: Message
 ): State => {
   if (typeof message.payload !== "undefined") {
-    const transaction = JSON.parse(message.payload) as Transaction;
+    const transaction = JSON.parse(message.payload) as Blockchain.Transaction;
     return addTransaction(state, transaction);
   }
   return state;
 };
 
 const handleChainResponse = (state: State, message: Message): State => {
-  let blocks: Block[] = [];
+  let blocks: Blockchain.Block[] = [];
   if (typeof message.payload !== "undefined") {
     blocks = JSON.parse(message.payload);
   }

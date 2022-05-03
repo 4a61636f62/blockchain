@@ -9,7 +9,7 @@ import {
   Container,
   Pagination,
 } from "@mantine/core";
-import { Block } from "lib/blockchain";
+import * as Blockchain from "lib/blockchain";
 
 function BlockModal({
   index,
@@ -17,7 +17,7 @@ function BlockModal({
   opened,
 }: {
   index: number;
-  block: Block;
+  block: Blockchain.Block;
   opened: boolean;
 }) {
   const navigate = useNavigate();
@@ -57,7 +57,13 @@ function BlockModal({
   );
 }
 
-function BlockRow({ index, block }: { index: number; block: Block }) {
+function BlockRow({
+  index,
+  block,
+}: {
+  index: number;
+  block: Blockchain.Block;
+}) {
   // format transactions and convert timestamp to local time
   return (
     <tr>
@@ -73,7 +79,7 @@ function BlockRow({ index, block }: { index: number; block: Block }) {
   );
 }
 
-function Blocks({ blocks }: { blocks: Block[] }) {
+function Blocks({ blocks }: { blocks: Blockchain.Block[] }) {
   const [page, setPage] = useState(1);
   const { hash } = useParams();
 

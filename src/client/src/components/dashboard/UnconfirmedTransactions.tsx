@@ -8,10 +8,14 @@ import {
   Text,
   Title,
 } from "@mantine/core";
-import { Transaction } from "lib/blockchain";
+import * as Blockchain from "lib/blockchain";
 import { Link } from "react-router-dom";
 
-function TransactionCard({ transaction }: { transaction: Transaction }) {
+function TransactionCard({
+  transaction,
+}: {
+  transaction: Blockchain.Transaction;
+}) {
   return (
     <Card withBorder style={{ cursor: "pointer" }}>
       <Text>{new Date(transaction.timestamp).toLocaleTimeString()}</Text>
@@ -27,9 +31,9 @@ function TransactionCard({ transaction }: { transaction: Transaction }) {
 function UnconfirmedTransactions({
   transactions,
 }: {
-  transactions: Transaction[];
+  transactions: Blockchain.Transaction[];
 }) {
-  const [openTx, setOpenTx] = useState<Transaction | null>(null);
+  const [openTx, setOpenTx] = useState<Blockchain.Transaction | null>(null);
   return (
     <Container>
       <Title>Unconfirmed Transactions</Title>

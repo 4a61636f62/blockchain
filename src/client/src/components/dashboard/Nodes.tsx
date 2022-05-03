@@ -9,7 +9,7 @@ import {
   Grid,
   Modal,
 } from "@mantine/core";
-import { Wallet } from "lib/wallet";
+import * as Blockchain from "lib/blockchain";
 import CreateTransaction from "./CreateTransaction";
 
 function Node({
@@ -22,9 +22,9 @@ function Node({
   createTransaction,
   disableMiningButton,
 }: {
-  wallet: Wallet;
+  wallet: Blockchain.Wallet;
   name: string;
-  nodes: Map<string, Wallet>;
+  nodes: Map<string, Blockchain.Wallet>;
   balance: number | undefined;
   unconfirmedBalance: number | undefined;
   mineBlock: (minerAddress: string) => void;
@@ -84,12 +84,12 @@ function Nodes({
   createTransaction,
   running,
 }: {
-  nodes: Map<string, Wallet>;
+  nodes: Map<string, Blockchain.Wallet>;
   balances: Map<string, number>;
   unconfirmedBalances: Map<string, number>;
   mineBlock: (minerAddress: string) => void;
   createTransaction: (
-    fromWallet: Wallet,
+    fromWallet: Blockchain.Wallet,
     toAddress: string,
     amount: number
   ) => boolean;

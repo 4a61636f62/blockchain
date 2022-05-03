@@ -1,6 +1,6 @@
 import React from "react";
 import { Container, Grid, Text, Title } from "@mantine/core";
-import { Wallet } from "lib/wallet";
+import * as Blockchain from "lib/blockchain/";
 import CreateTransaction from "../CreateTransaction";
 
 function WalletPanel({
@@ -9,7 +9,7 @@ function WalletPanel({
   unconfirmedBalance,
   createTransaction,
 }: {
-  wallet: Wallet;
+  wallet: Blockchain.Wallet;
   balance: number | undefined;
   unconfirmedBalance: number | undefined;
   createTransaction: (toAddress: string, amount: number) => boolean;

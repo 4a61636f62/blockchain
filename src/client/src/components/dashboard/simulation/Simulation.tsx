@@ -1,13 +1,11 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Divider, Grid } from "@mantine/core";
 import { Route, Routes } from "react-router-dom";
-import { Wallet } from "lib/wallet";
-import { BlockchainUtils } from "lib/blockchain-utils";
-import { Block, Transaction } from "lib/blockchain";
+import * as Blockchain from "lib/blockchain/";
 import SimulationControl from "./SimulationControl";
 import Nodes from "../Nodes";
 import UnconfirmedTransactions from "../UnconfirmedTransactions";
-import BlockChain from "../Blockchain";
+import BlockPanel from "../BlockPanel";
 import Blocks from "../../blocks/Blocks";
 import Transactions from "../../transactions/Transactions";
 
@@ -16,12 +14,14 @@ const TIMEOUT = 1000;
 function Simulation() {
   const [running, setRunning] = useState(false);
   const [autoTx, setAutoTx] = useState(false);
-  const [nodes, setNodes] = useState(new Map<string, Wallet>());
-  const [nodeWallets, setNodeWallets] = useState<Wallet[]>([]);
-  const blocksRef = useRef<Block[]>([]);
-  const [blocks, setBlocks] = useState<Block[]>([]);
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const txRef = useRef<Transaction[]>([]);
+  const [nodes, setNodes] = useState(new Map<string, Blockchain.Wallet>());
+  const [nodeWallets, setNodeWallets] = useState<Blockchain.Wallet[]>([]);
+  const blocksRef = useRef<Blockchain.Block[]>([]);
+  const [blocks, setBlocks] = useState<Blockchain.Block[]>([]);
+  const [transactions, setTransactions] = useState<Blockchain.Transaction[]>(
+    []
+  );
+  const txRef = useRef<Blockchain.Transaction[]>([]);
   const miningTimeout = useRef<NodeJS.Timeout>();
   const txTimeout = useRef<NodeJS.Timeout>();
   const balancesRef = useRef<{
@@ -34,13 +34,12 @@ function Simulation() {
   const [balances, setBalances] = useState(balancesRef.current);
   const [difficulty, setDifficulty] = useState(1);
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const createSimulation = (noOfNodes: number, miningDifficulty: number) => {
     const wallets = [];
-    const nodeMap = new Map<string, Wallet>();
+    const nodeMap = new Map<string, Blockchain.Wallet>();
     setBlocks([]);
     for (let i = 0; i < noOfNodes; i += 1) {
-      const wallet = new Wallet();
+      const wallet = new Blockchain.Wallet();
       wallets.push(wallet);
       nodeMap.set(`Node ${i + 1}`, wallet);
     }
@@ -56,7 +55,7 @@ function Simulation() {
   const updateConfirmedBalances = useCallback(() => {
     balancesRef.current = {
       ...balancesRef.current,
-      confirmed: BlockchainUtils.getAddressBalances(blocksRef.current),
+      confirmed: Blockchain.getAddressBalances(blocksRef.current),
     };
     setBalances(balancesRef.current);
   }, []);
@@ -64,7 +63,7 @@ function Simulation() {
   const updateUnconfirmedBalances = useCallback(() => {
     balancesRef.current = {
       ...balancesRef.current,
-      unconfirmed: BlockchainUtils.getAddressUnconfirmedBalances(
+      unconfirmed: Blockchain.getAddressUnconfirmedBalances(
         blocksRef.current,
         txRef.current
       ),
@@ -74,11 +73,11 @@ function Simulation() {
 
   const mineBlock = useCallback(
     (minerAddress: string) => {
-      let block: Block;
+      let block: Blockchain.Block;
       if (blocksRef.current.length === 0) {
-        block = BlockchainUtils.mineGenesisBlock(minerAddress, difficulty);
+        block = Blockchain.mineGenesisBlock(minerAddress, difficulty);
       } else {
-        block = BlockchainUtils.mineBlock(
+        block = Blockchain.mineBlock(
           blocksRef.current[blocksRef.current.length - 1],
           txRef.current,
           minerAddress
@@ -109,7 +108,7 @@ function Simulation() {
   );
 
   const createTransaction = useCallback(
-    (fromWallet: Wallet, toAddress: string, amount: number) => {
+    (fromWallet: Blockchain.Wallet, toAddress: string, amount: number) => {
       const unconfirmedBalance = balancesRef.current.unconfirmed.has(
         fromWallet.address
       )
@@ -213,7 +212,7 @@ function Simulation() {
                 </Grid.Col>
               </Grid>
               <Divider style={{ margin: 10 }} />
-              <BlockChain blocks={blocks} />
+              <BlockPanel blocks={blocks} mine={false} />
             </>
           }
         />
@@ -226,7 +225,7 @@ function Simulation() {
             index
             element={
               <Transactions
-                confirmed={BlockchainUtils.getTransactions(blocks)}
+                confirmed={Blockchain.getTransactions(blocks)}
                 unconfirmed={transactions}
               />
             }
@@ -235,7 +234,7 @@ function Simulation() {
             path=":txid"
             element={
               <Transactions
-                confirmed={BlockchainUtils.getTransactions(blocks)}
+                confirmed={Blockchain.getTransactions(blocks)}
                 unconfirmed={transactions}
               />
             }

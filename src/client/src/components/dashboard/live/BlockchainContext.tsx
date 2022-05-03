@@ -6,7 +6,7 @@ import React, {
   useReducer,
 } from "react";
 import { Message, MessageTypes } from "lib/message";
-import { Wallet } from "lib/wallet";
+import * as Blockchain from "lib/blockchain";
 import { BlockchainClient } from "client/src/services/blockchain-client";
 import { reducer, State, Action } from "client/src/utils/reducers";
 
@@ -22,7 +22,7 @@ function BlockchainProvider({ children }: ComponentProps) {
     client: new BlockchainClient(),
     blocks: [],
     transactions: [],
-    wallet: new Wallet(),
+    wallet: new Blockchain.Wallet(),
   });
 
   function handleMessages(message: Message): void {

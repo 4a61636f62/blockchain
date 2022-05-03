@@ -10,13 +10,19 @@ import {
   Anchor,
   Button,
 } from "@mantine/core";
-import { Block } from "lib/blockchain";
+import * as Blockchain from "lib/blockchain";
 import { Link } from "react-router-dom";
 
 const BLOCK_WIDTH = 400;
 const ARROW_WIDTH = 100;
 
-function BlockCard({ block, index }: { block: Block; index: number }) {
+function BlockCard({
+  block,
+  index,
+}: {
+  block: Blockchain.Block;
+  index: number;
+}) {
   return (
     <div
       style={{
@@ -53,8 +59,13 @@ function Arrow() {
   );
 }
 
-// eslint-disable-next-line react/require-default-props
-function BlockChain({ blocks, mine }: { blocks: Block[]; mine?: () => void }) {
+function BlockPanel({
+  blocks,
+  mine,
+}: {
+  blocks: Blockchain.Block[];
+  mine: (() => void) | false;
+}) {
   const viewport = useRef<HTMLDivElement>(null);
   const elements: JSX.Element[] = [];
   blocks.forEach((b, index) => {
@@ -86,4 +97,4 @@ function BlockChain({ blocks, mine }: { blocks: Block[]; mine?: () => void }) {
   );
 }
 
-export default BlockChain;
+export default BlockPanel;

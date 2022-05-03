@@ -1,14 +1,8 @@
 import { ec as EC } from "elliptic";
 import RIPEMD160 from "crypto-js/ripemd160";
 import { lib } from "crypto-js/core";
-import {
-  Block,
-  Transaction,
-  TransactionInput,
-  TransactionOutput,
-} from "./blockchain";
 
-import { BlockchainUtils } from "./blockchain-utils";
+import * as Blockchain from "./utils";
 
 const ec = new EC("secp256k1");
 
@@ -35,12 +29,11 @@ export class Wallet {
   public createTransaction(
     outputAddress: BlockchainAddress,
     amountToSend: number,
-    blocks: Block[],
+    blocks: Blockchain.Block[],
     balance: number,
     unconfirmedBalance: number
-  ): Transaction | null {
-    const utxo = BlockchainUtils.getUTXO(blocks);
-
+  ): Blockchain.Transaction | null {
+    const utxo = Blockchain.getUTXO(blocks);
     if (balance + unconfirmedBalance < amountToSend) {
       return null;
     }
@@ -50,7 +43,7 @@ export class Wallet {
       return null;
     }
 
-    const outputs: TransactionOutput[] = [
+    const outputs: Blockchain.TransactionOutput[] = [
       {
         address: outputAddress,
         amount: amountToSend,
@@ -68,17 +61,17 @@ export class Wallet {
     return {
       inputs,
       outputs,
-      txid: BlockchainUtils.createTXID(inputs, outputs, timestamp),
+      txid: Blockchain.createTXID(inputs, outputs, timestamp),
       timestamp,
     };
   }
 
   private getInputsForTransaction(
     amount: number,
-    utxo: Map<string, TransactionOutput[]>
-  ): [TransactionInput[], number] {
+    utxo: Map<string, Blockchain.TransactionOutput[]>
+  ): [Blockchain.TransactionInput[], number] {
     let total = 0;
-    const inputs: TransactionInput[] = [];
+    const inputs: Blockchain.TransactionInput[] = [];
 
     Array.from(utxo.entries()).some(([txid, outputs]) =>
       outputs.some((output, index) => {
