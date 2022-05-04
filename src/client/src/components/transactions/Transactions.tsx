@@ -2,8 +2,8 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Anchor,
   Container,
-  Divider,
   Grid,
+  Group,
   Modal,
   Pagination,
   Table,
@@ -12,6 +12,7 @@ import {
 } from "@mantine/core";
 import * as Blockchain from "lib/blockchain";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { RiArrowRightFill } from "react-icons/ri";
 
 export function TransactionRow({
   transaction,
@@ -55,24 +56,42 @@ function TransactionModal({
   );
 
   return (
-    <Modal opened={opened} onClose={() => navigate("/transactions")} size="50%">
-      <Text>{tx.txid}</Text>
-      <Text>{new Date(tx.timestamp).toLocaleTimeString()}</Text>
-      <Divider />
-      <Grid>
-        <Grid.Col span={6}>
-          <Text>Inputs:</Text>
+    <Modal
+      opened={opened}
+      onClose={() => navigate("/transactions")}
+      size="50%"
+      title={<Title order={3}>Transaction</Title>}
+    >
+      <Table>
+        <tbody>
+          <tr>
+            <td>Created</td>
+            <td>{new Date(tx.timestamp).toLocaleString()}</td>
+          </tr>
+          <tr>
+            <td>TxID</td>
+            <td>{tx.txid}</td>
+          </tr>
+        </tbody>
+      </Table>
+      <Grid style={{ marginTop: 40 }}>
+        <Grid.Col span={5}>
+          <Title order={4}>Inputs:</Title>
           {tx.inputs.length > 0 ? (
             tx.inputs.map((i) => (
               <div key={i.txid + i.outputIndex}>
-                <Anchor
-                  component={Link}
-                  to={`/transactions/${i.txid}`}
-                >{`txid: ${i.txid.slice(0, 10)}...${i.txid.slice(
-                  tx.txid.length - 11
-                )}`}</Anchor>
-                <Text>{`Output Index: ${i.outputIndex}`}</Text>
-                <Text>{`Amount ${getOutputAmount(
+                <Group>
+                  <Text size="xs">txID</Text>
+                  <Anchor
+                    component={Link}
+                    size="xs"
+                    to={`/transactions/${i.txid}`}
+                  >{`${i.txid.slice(0, 10)}...${i.txid.slice(
+                    tx.txid.length - 11
+                  )}`}</Anchor>
+                </Group>
+                <Text size="xs">{`Output Index: ${i.outputIndex}`}</Text>
+                <Text size="xs">{`Amount ${getOutputAmount(
                   i.txid,
                   i.outputIndex
                 )}`}</Text>
@@ -80,15 +99,18 @@ function TransactionModal({
               </div>
             ))
           ) : (
-            <Text>Block Reward</Text>
+            <Text size="xs">Block Reward</Text>
           )}
         </Grid.Col>
-        <Grid.Col span={6}>
-          <Text>Outputs:</Text>
+        <Grid.Col span={2}>
+          <RiArrowRightFill size={30} />
+        </Grid.Col>
+        <Grid.Col span={5}>
+          <Title order={4}>Outputs:</Title>
           {tx.outputs.map((o) => (
             <div key={o.address + o.amount}>
-              <Text>{`Amount: ${o.amount}`}</Text>
-              <Text>{`To: ${o.address}`}</Text>
+              <Text size="xs">{`Amount: ${o.amount}`}</Text>
+              <Text size="xs">{`To: ${o.address}`}</Text>
               <br />
             </div>
           ))}

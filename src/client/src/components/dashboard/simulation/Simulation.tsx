@@ -3,7 +3,7 @@ import { Divider, Grid } from "@mantine/core";
 import { Route, Routes } from "react-router-dom";
 import * as Blockchain from "lib/blockchain/";
 import SimulationControl from "./SimulationControl";
-import NodePanel from "../shared/NodePanel";
+import NodePanel from "./NodePanel";
 import TransactionPanel from "../shared/TransactionPanel";
 import BlockPanel from "../shared/BlockPanel";
 import Blocks from "../../blocks/Blocks";
@@ -208,9 +208,11 @@ function Simulation() {
                 <Grid.Col span={6}>
                   <TransactionPanel transactions={transactions} />
                 </Grid.Col>
+                <Grid.Col span={12}>
+                  <Divider style={{ margin: 10 }} />
+                  <BlockPanel blocks={blocks} mine={false} />
+                </Grid.Col>
               </Grid>
-              <Divider style={{ margin: 10 }} />
-              <BlockPanel blocks={blocks} mine={false} />
             </>
           }
         />

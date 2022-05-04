@@ -3,6 +3,7 @@
 import React from "react";
 import {
   Button,
+  Center,
   Group,
   NumberInput,
   Select,
@@ -58,30 +59,32 @@ function TransactionForm({
 
   return (
     <form onSubmit={create}>
-      <Group direction="column">
-        <Title order={4}>Create Transaction</Title>
-        {typeof nodeList !== "undefined" ? (
-          <Select
-            required
-            label="Address"
-            {...form.getInputProps("address")}
-            data={nodeList}
-          />
-        ) : (
-          <TextInput
-            required
-            label="Address"
-            {...form.getInputProps("address")}
-          />
-        )}
+      <Center>
+        <Group direction="column">
+          <Title order={4}>Create Transaction</Title>
+          {typeof nodeList !== "undefined" ? (
+            <Select
+              required
+              label="Address"
+              {...form.getInputProps("address")}
+              data={nodeList}
+            />
+          ) : (
+            <TextInput
+              required
+              label="Address"
+              {...form.getInputProps("address")}
+            />
+          )}
 
-        <NumberInput
-          required
-          label="Amount"
-          {...form.getInputProps("amount")}
-        />
-        <Button type="submit">Send</Button>
-      </Group>
+          <NumberInput
+            required
+            label="Amount"
+            {...form.getInputProps("amount")}
+          />
+          <Button type="submit">Send</Button>
+        </Group>
+      </Center>
     </form>
   );
 }

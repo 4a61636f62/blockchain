@@ -4,7 +4,6 @@ import {
   Anchor,
   Table,
   Modal,
-  ScrollArea,
   Title,
   Container,
   Pagination,
@@ -26,7 +25,7 @@ function BlockModal({
       size="xl"
       opened={opened}
       onClose={() => navigate("/blocks")}
-      title={`block #${index}`}
+      title={<Title order={3}>Block #{index}</Title>}
     >
       <Table>
         <tbody>
@@ -39,12 +38,16 @@ function BlockModal({
             <td>{block.hash}</td>
           </tr>
           <tr>
+            <td>Previous Hash:</td>
             <td>
               <Anchor component={Link} to={`/blocks/${block.prevHash}`}>
-                Previous Hash
+                {block.prevHash}
               </Anchor>
             </td>
-            <td>{block.prevHash}</td>
+          </tr>
+          <tr>
+            <td>Miner</td>
+            <td>{block.minerAddress}</td>
           </tr>
           <tr>
             <td>Nonce</td>
@@ -52,7 +55,31 @@ function BlockModal({
           </tr>
         </tbody>
       </Table>
-      <ScrollArea style={{ height: 250 }} />
+      <Title order={3} style={{ marginTop: 40, marginBottom: 20 }}>
+        Transactions
+      </Title>
+      <Table style={{ textAlign: "left" }}>
+        <thead>
+          <th>txID</th>
+          <th>Time</th>
+          <th>Type</th>
+          <th>Amount</th>
+        </thead>
+        <tbody>
+          {block.txs.map((tx) => (
+            <tr>
+              <td>
+                <Anchor component={Link} to={`/transactions/${tx.txid}`}>
+                  {`${tx.txid.slice(0, 20)}...`}
+                </Anchor>
+              </td>
+              <td>{new Date(tx.timestamp).toLocaleString()}</td>
+              <td>{tx.inputs.length === 0 ? "Block Reward" : "Transfer"} </td>
+              <td>{tx.outputs[0].amount}</td>
+            </tr>
+          ))}
+        </tbody>
+      </Table>
     </Modal>
   );
 }
@@ -64,16 +91,15 @@ function BlockRow({
   index: number;
   block: Blockchain.Block;
 }) {
-  // format transactions and convert timestamp to local time
   return (
     <tr>
+      <td>{index}</td>
+      <td>{new Date(block.timestamp).toLocaleTimeString()}</td>
       <td>
         <Anchor component={Link} to={`/blocks/${block.hash}`}>
-          {index}
+          {block.hash}
         </Anchor>
       </td>
-      <td>{new Date(block.timestamp).toLocaleTimeString()}</td>
-      <td>{block.minerAddress}</td>
       <td>{block.txs.length}</td>
     </tr>
   );
@@ -105,7 +131,7 @@ function Blocks({ blocks }: { blocks: Blockchain.Block[] }) {
             <tr>
               <th>Height</th>
               <th>Time</th>
-              <th>Miner</th>
+              <th>Hash</th>
               <th>Transactions</th>
             </tr>
           </thead>
