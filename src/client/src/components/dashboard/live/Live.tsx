@@ -1,10 +1,9 @@
 import React, { useCallback, useState } from "react";
 import { Divider, Grid } from "@mantine/core";
 import { Routes, Route } from "react-router-dom";
-import { Block } from "lib/blockchain";
-import { BlockchainUtils } from "lib/blockchain-utils";
-import UnconfirmedTransactions from "../UnconfirmedTransactions";
-import BlockChain from "../Blockchain";
+import * as Blockchain from "lib/blockchain";
+import TransactionPanel from "../shared/TransactionPanel";
+import BlockPanel from "../shared/BlockPanel";
 import WalletPanel from "./WalletPanel";
 import Blocks from "../../blocks/Blocks";
 import Transactions from "../../transactions/Transactions";
@@ -14,8 +13,8 @@ function Live() {
   const [mining, setMining] = useState(false);
   const { state, dispatch } = useBlockchainClient();
 
-  const balances = BlockchainUtils.getAddressBalances(state.blocks);
-  const unconfirmedBalances = BlockchainUtils.getAddressUnconfirmedBalances(
+  const balances = Blockchain.getAddressBalances(state.blocks);
+  const unconfirmedBalances = Blockchain.getAddressUnconfirmedBalances(
     state.blocks,
     state.transactions
   );
@@ -25,11 +24,11 @@ function Live() {
       return;
     }
     setMining(true);
-    let block: Block;
+    let block: Blockchain.Block;
     if (state.blocks.length === 0) {
-      block = BlockchainUtils.mineGenesisBlock(state.wallet.address, 1);
+      block = Blockchain.mineGenesisBlock(state.wallet.address, 1);
     } else {
-      block = BlockchainUtils.mineBlock(
+      block = Blockchain.mineBlock(
         state.blocks[state.blocks.length - 1],
         state.transactions,
         state.wallet.address
@@ -55,9 +54,7 @@ function Live() {
         const tx = state.wallet.createTransaction(
           toAddress,
           amount,
-          state.blocks,
-          balance,
-          unconfirmedBalance
+          state.blocks
         );
         if (tx) {
           dispatch({ type: "add-transaction", transaction: tx });
@@ -89,11 +86,11 @@ function Live() {
                   />
                 </Grid.Col>
                 <Grid.Col span={6}>
-                  <UnconfirmedTransactions transactions={state.transactions} />
+                  <TransactionPanel transactions={state.transactions} />
                 </Grid.Col>
               </Grid>
               <Divider style={{ margin: 10 }} />
-              <BlockChain blocks={state.blocks} mine={mine} />
+              <BlockPanel blocks={state.blocks} mine={mine} />
             </>
           }
         />
@@ -106,7 +103,7 @@ function Live() {
             index
             element={
               <Transactions
-                confirmed={BlockchainUtils.getTransactions(state.blocks)}
+                confirmed={Blockchain.getTransactions(state.blocks)}
                 unconfirmed={state.transactions}
               />
             }
@@ -115,7 +112,7 @@ function Live() {
             path=":txid"
             element={
               <Transactions
-                confirmed={BlockchainUtils.getTransactions(state.blocks)}
+                confirmed={Blockchain.getTransactions(state.blocks)}
                 unconfirmed={state.transactions}
               />
             }

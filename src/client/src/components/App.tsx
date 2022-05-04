@@ -1,43 +1,54 @@
 import React, { useState } from "react";
 import {
-  Anchor,
   AppShell,
-  Button,
   Center,
-  Group,
   Header,
-  Navbar,
   Title,
+  MediaQuery,
+  Burger,
+  Navbar,
   Text,
+  Button,
+  Group,
+  Anchor,
 } from "@mantine/core";
 import { Link } from "react-router-dom";
-import Simulation from "./components/dashboard/simulation/Simulation";
-import Live from "./components/dashboard/live/Live";
-import { BlockchainProvider } from "./components/dashboard/live/BlockchainContext";
+import Simulation from "./dashboard/simulation/Simulation";
+import Live from "./dashboard/live/Live";
+import { BlockchainProvider } from "./dashboard/live/BlockchainContext";
 
-type Network = "Sim" | "Live";
 function App() {
-  const [network, setNetwork] = useState<Network>("Sim");
+  const [network, setNetwork] = useState<string>("Sim");
+  const [hideNavbar, setHideNavbar] = useState(true);
   return (
     <AppShell
+      navbarOffsetBreakpoint="sm"
+      fixed
       navbar={
-        <Navbar width={{ base: 300 }} height={500}>
+        <Navbar
+          width={{ sm: 200, lg: 300 }}
+          height={500}
+          hiddenBreakpoint="sm"
+          hidden={hideNavbar}
+        >
           <Navbar.Section>
             <Center>
               <Text>Network</Text>
             </Center>
             <Center>
               <Button
-                style={{ width: 110 }}
+                style={{ width: 80 }}
                 disabled={network === "Sim"}
                 onClick={() => setNetwork("Sim")}
+                size="xs"
               >
-                Simulated
+                Sim
               </Button>
               <Button
-                style={{ width: 110 }}
+                style={{ width: 80 }}
                 disabled={network === "Live"}
                 onClick={() => setNetwork("Live")}
+                size="xs"
               >
                 Live
               </Button>
@@ -62,6 +73,14 @@ function App() {
       }
       header={
         <Header height={80}>
+          <MediaQuery largerThan="sm" styles={{ display: "none" }}>
+            <Burger
+              opened={!hideNavbar}
+              onClick={() => setHideNavbar((x) => !x)}
+              size="sm"
+              mr="xl"
+            />
+          </MediaQuery>
           <Center>
             <Title>Blockchain</Title>
           </Center>

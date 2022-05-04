@@ -1,9 +1,9 @@
 import { Message, MessageTypes } from "lib/message";
-import { Block, Transaction } from "lib/blockchain";
+import * as Blockchain from "lib/blockchain";
 import { WsClient } from "./ws-client";
 
 export class BlockchainClient extends WsClient<Message> {
-  announceBlock(block: Block): void {
+  announceBlock(block: Blockchain.Block): void {
     this.send({
       type: MessageTypes.NewBlockAnnouncement,
       correlationId: "1",
@@ -11,7 +11,7 @@ export class BlockchainClient extends WsClient<Message> {
     });
   }
 
-  announceTransaction(transaction: Transaction): void {
+  announceTransaction(transaction: Blockchain.Transaction): void {
     this.send({
       type: MessageTypes.TransactionAnnouncement,
       correlationId: "1",
@@ -26,7 +26,7 @@ export class BlockchainClient extends WsClient<Message> {
     });
   }
 
-  sendChain(blocks: Block[]): void {
+  sendChain(blocks: Blockchain.Block[]): void {
     this.send({
       type: MessageTypes.ChainResponse,
       correlationId: "1",

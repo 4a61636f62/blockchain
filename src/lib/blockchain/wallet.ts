@@ -1,74 +1,50 @@
 import { ec as EC } from "elliptic";
 import RIPEMD160 from "crypto-js/ripemd160";
 import { lib } from "crypto-js/core";
+
 import {
   Block,
   Transaction,
   TransactionInput,
   TransactionOutput,
-} from "./blockchain";
-
-import { BlockchainUtils } from "./blockchain-utils";
+} from "./types";
+import * as Blockchain from "./index";
 
 const ec = new EC("secp256k1");
 
-export type BlockchainAddress = string;
-
 export class Wallet {
-  private readonly privateKey: string;
-
   private readonly keypair: EC.KeyPair;
 
-  readonly publicKey: string;
-
-  readonly address: BlockchainAddress;
+  readonly address: string;
 
   constructor() {
-    this.privateKey = lib.WordArray.random(32).toString();
-    this.keypair = ec.keyFromPrivate(this.privateKey);
-    this.publicKey =
+    const privateKey = lib.WordArray.random(32).toString();
+    this.keypair = ec.keyFromPrivate(privateKey);
+    const publicKey =
       this.keypair.getPublic().getX().toString(16) +
       (this.keypair.getPublic().getY().isOdd() ? "1" : "0");
-    this.address = RIPEMD160(this.publicKey).toString();
+    this.address = RIPEMD160(publicKey).toString();
   }
 
   public createTransaction(
-    outputAddress: BlockchainAddress,
+    outputAddress: string,
     amountToSend: number,
-    blocks: Block[],
-    balance: number,
-    unconfirmedBalance: number
+    blocks: Block[]
   ): Transaction | null {
-    const utxo = BlockchainUtils.getUTXO(blocks);
-
-    if (balance + unconfirmedBalance < amountToSend) {
-      return null;
-    }
+    const utxo = Blockchain.getUTXO(blocks);
 
     const [inputs, change] = this.getInputsForTransaction(amountToSend, utxo);
-    if (change < 0) {
-      return null;
-    }
+    if (change < 0) return null;
 
-    const outputs: TransactionOutput[] = [
-      {
-        address: outputAddress,
-        amount: amountToSend,
-      },
-    ];
-
-    if (change > 0) {
-      outputs.push({
-        address: this.address,
-        amount: change,
-      });
-    }
+    const outputs: TransactionOutput[] = [];
+    outputs.push({ address: outputAddress, amount: amountToSend });
+    if (change > 0) outputs.push({ address: this.address, amount: change });
 
     const timestamp = Date.now();
     return {
       inputs,
       outputs,
-      txid: BlockchainUtils.createTXID(inputs, outputs, timestamp),
+      txid: Blockchain.createTXID(inputs, outputs, timestamp),
       timestamp,
     };
   }
@@ -96,11 +72,16 @@ export class Wallet {
     return [inputs, total - amount];
   }
 
-  private sign(data: string): { r: string; s: string } {
+  private sign(data: string): {
+    r: string;
+    s: string;
+    recoveryParam: number | null;
+  } {
     const sig = this.keypair.sign(data);
     return {
       r: sig.r.toString(),
       s: sig.s.toString(),
+      recoveryParam: sig.recoveryParam,
     };
   }
 }
