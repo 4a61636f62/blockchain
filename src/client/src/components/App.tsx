@@ -11,9 +11,9 @@ import {
   Text,
 } from "@mantine/core";
 import { Link } from "react-router-dom";
-import Simulation from "./components/dashboard/simulation/Simulation";
-import Live from "./components/dashboard/live/Live";
-import { BlockchainProvider } from "./components/dashboard/live/BlockchainContext";
+import Simulation from "./dashboard/simulation/Simulation";
+import Live from "./dashboard/live/Live";
+import { BlockchainProvider } from "./dashboard/live/BlockchainContext";
 
 type Network = "Sim" | "Live";
 function App() {

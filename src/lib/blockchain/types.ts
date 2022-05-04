@@ -24,6 +24,7 @@ export type TransactionInput = {
   signature: {
     r: string;
     s: string;
+    recoveryParam: number | null;
   };
 };
 

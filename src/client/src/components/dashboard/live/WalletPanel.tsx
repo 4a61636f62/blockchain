@@ -1,7 +1,7 @@
 import React from "react";
 import { Container, Grid, Text, Title } from "@mantine/core";
 import * as Blockchain from "lib/blockchain/";
-import CreateTransaction from "../CreateTransaction";
+import TransactionForm from "../shared/TransactionForm";
 
 function WalletPanel({
   wallet,
@@ -35,7 +35,7 @@ function WalletPanel({
         </Grid.Col>
         <Grid.Col span={3} />
         <Grid.Col span={6}>
-          <CreateTransaction
+          <TransactionForm
             createTransaction={createTransaction}
             balance={balance}
             unconfirmedBalance={unconfirmedBalance}

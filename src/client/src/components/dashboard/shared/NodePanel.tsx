@@ -10,7 +10,7 @@ import {
   Modal,
 } from "@mantine/core";
 import * as Blockchain from "lib/blockchain";
-import CreateTransaction from "./CreateTransaction";
+import TransactionForm from "./TransactionForm";
 
 function Node({
   wallet,
@@ -43,7 +43,7 @@ function Node({
   return (
     <Card withBorder>
       <Modal opened={opened} onClose={() => setOpened(false)}>
-        <CreateTransaction
+        <TransactionForm
           createTransaction={createTransaction}
           nodeList={nodeList}
           closeForm={() => setOpened(false)}
@@ -78,7 +78,7 @@ function Node({
   );
 }
 
-function Nodes({
+function NodePanel({
   nodes,
   balances,
   unconfirmedBalances,
@@ -120,4 +120,4 @@ function Nodes({
   );
 }
 
-export default Nodes;
+export default NodePanel;

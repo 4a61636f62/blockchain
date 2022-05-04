@@ -11,7 +11,7 @@ import {
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 
-function CreateTransaction({
+function TransactionForm({
   createTransaction,
   nodeList,
   closeForm,
@@ -86,4 +86,4 @@ function CreateTransaction({
   );
 }
 
-export default CreateTransaction;
+export default TransactionForm;

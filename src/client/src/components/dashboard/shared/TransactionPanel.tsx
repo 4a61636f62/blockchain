@@ -28,7 +28,7 @@ function TransactionCard({
   );
 }
 
-function UnconfirmedTransactions({
+function TransactionPanel({
   transactions,
 }: {
   transactions: Blockchain.Transaction[];
@@ -49,4 +49,4 @@ function UnconfirmedTransactions({
   );
 }
 
-export default UnconfirmedTransactions;
+export default TransactionPanel;

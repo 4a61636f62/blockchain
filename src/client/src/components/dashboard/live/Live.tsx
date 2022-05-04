@@ -2,8 +2,8 @@ import React, { useCallback, useState } from "react";
 import { Divider, Grid } from "@mantine/core";
 import { Routes, Route } from "react-router-dom";
 import * as Blockchain from "lib/blockchain";
-import UnconfirmedTransactions from "../UnconfirmedTransactions";
-import BlockPanel from "../BlockPanel";
+import TransactionPanel from "../shared/TransactionPanel";
+import BlockPanel from "../shared/BlockPanel";
 import WalletPanel from "./WalletPanel";
 import Blocks from "../../blocks/Blocks";
 import Transactions from "../../transactions/Transactions";
@@ -86,7 +86,7 @@ function Live() {
                   />
                 </Grid.Col>
                 <Grid.Col span={6}>
-                  <UnconfirmedTransactions transactions={state.transactions} />
+                  <TransactionPanel transactions={state.transactions} />
                 </Grid.Col>
               </Grid>
               <Divider style={{ margin: 10 }} />
