@@ -3,8 +3,7 @@ export abstract class WsClient<T> {
 
   private messagesCallback!: (messages: T) => void;
 
-  connect(messagesCallback: (message: T) => void): Promise<WebSocket> {
-    this.messagesCallback = messagesCallback;
+  connect(): Promise<WebSocket> {
     this.wsc = new Promise((resolve, reject) => {
       const ws = new WebSocket("ws://localhost:3000");
       ws.addEventListener("open", () => resolve(ws));
@@ -12,6 +11,10 @@ export abstract class WsClient<T> {
       ws.addEventListener("message", this.onMessageReceived);
     });
     return this.wsc;
+  }
+
+  setCallback(messagesCallback: (message: T) => void): void {
+    this.messagesCallback = messagesCallback;
   }
 
   disconnect() {

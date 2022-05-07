@@ -1,54 +1,107 @@
-import React, { useCallback, useEffect, useReducer, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Divider, Grid } from "@mantine/core";
 import { Routes, Route } from "react-router-dom";
-import * as Blockchain from "lib/blockchain";
 import { Message, MessageTypes } from "lib/message";
+import {
+  Block,
+  Transaction,
+  Wallet,
+  validateBlock,
+  getAddressBalances,
+  getAddressUnconfirmedBalances,
+  mineBlock,
+  mineGenesisBlock,
+  getTransactions,
+} from "lib/blockchain";
 import TransactionPanel from "../shared/TransactionPanel";
 import BlockPanel from "../shared/BlockPanel";
 import WalletPanel from "./WalletPanel";
 import Blocks from "../../blocks/Blocks";
 import Transactions from "../../transactions/Transactions";
-import { reducer } from "../../../utils/reducers";
 import { BlockchainClient } from "../../../services/blockchain-client";
 
 function Live() {
   const [mining, setMining] = useState(false);
-  const [state, dispatch] = useReducer(reducer, {
-    client: new BlockchainClient(),
-    blocks: [],
-    transactions: [],
-    wallet: new Blockchain.Wallet(),
-  });
 
-  function handleMessages(message: Message): void {
-    switch (message.type) {
-      case MessageTypes.NewBlockAnnouncement:
-        dispatch({ type: "handle-block-announcement", message });
-        break;
-      case MessageTypes.TransactionAnnouncement:
-        dispatch({ type: "handle-transaction-announcement", message });
-        break;
-      case MessageTypes.ChainRequest:
-        dispatch({ type: "handle-chain-request" });
-        break;
-      case MessageTypes.ChainResponse:
-        dispatch({ type: "handle-chain-response", message });
-        break;
-      default:
+  const client = useRef(new BlockchainClient());
+  const wallet = useRef(new Wallet());
+
+  const [blocks, setBlocks] = useState<Block[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+
+  const handleBlockAnnouncement = useCallback(
+    (message: Message) => {
+      if (typeof message.payload !== "undefined") {
+        const block = JSON.parse(message.payload) as Block;
+        if (
+          blocks.length < 1 ||
+          validateBlock(block, blocks[blocks.length - 1].hash)
+        ) {
+          setBlocks([...blocks, block]);
+        }
+      }
+    },
+    [blocks]
+  );
+
+  const handleTransactionAnnouncement = useCallback(
+    (message: Message) => {
+      if (typeof message.payload !== "undefined") {
+        const transaction = JSON.parse(message.payload) as Transaction;
+        setTransactions([...transactions, transaction]);
+      }
+    },
+    [transactions]
+  );
+
+  const handleChainResponse = useCallback((message: Message) => {
+    if (typeof message.payload !== "undefined") {
+      setBlocks(JSON.parse(message.payload) as Block[]);
     }
-  }
+  }, []);
+
+  const handleMessages = useCallback(
+    (message: Message) => {
+      switch (message.type) {
+        case MessageTypes.NewBlockAnnouncement:
+          handleBlockAnnouncement(message);
+          break;
+        case MessageTypes.TransactionAnnouncement:
+          handleTransactionAnnouncement(message);
+          break;
+        case MessageTypes.ChainRequest:
+          client.current.sendChain(blocks);
+          break;
+        case MessageTypes.ChainResponse:
+          handleChainResponse(message);
+          break;
+        default:
+      }
+    },
+    [
+      blocks,
+      transactions,
+      handleBlockAnnouncement,
+      handleTransactionAnnouncement,
+      handleChainResponse,
+    ]
+  );
 
   useEffect(() => {
     (async () => {
-      await state.client.connect(handleMessages);
-      dispatch({ type: "send-chain-request" });
+      await client.current.connect();
+      client.current.requestLongestChain();
     })();
   }, []);
 
-  const balances = Blockchain.getAddressBalances(state.blocks);
-  const unconfirmedBalances = Blockchain.getAddressUnconfirmedBalances(
-    state.blocks,
-    state.transactions
+  useEffect(() => {
+    client.current.setCallback(handleMessages);
+  }, [handleMessages]);
+
+  const balances = getAddressBalances(blocks);
+  const unconfirmedBalances = getAddressUnconfirmedBalances(
+    blocks,
+    transactions
   );
 
   const mine = useCallback(() => {
@@ -56,47 +109,43 @@ function Live() {
       return;
     }
     setMining(true);
-    let block: Blockchain.Block;
-    if (state.blocks.length === 0) {
-      block = Blockchain.mineGenesisBlock(state.wallet.address, 1);
+    let block: Block;
+    if (blocks.length === 0) {
+      block = mineGenesisBlock(wallet.current.address, 1);
     } else {
-      block = Blockchain.mineBlock(
-        state.blocks[state.blocks.length - 1],
-        state.transactions,
-        state.wallet.address
+      block = mineBlock(
+        blocks[blocks.length - 1],
+        transactions,
+        wallet.current.address
       );
     }
-    dispatch({ type: "add-block", block });
-    dispatch({ type: "send-block-announcement", block });
+    setBlocks([...blocks, block]);
+    client.current.announceBlock(block);
     setMining(false);
-  }, [state]);
+  }, [blocks, transactions]);
 
   const createTransaction = useCallback(
     (toAddress: string, amount: number) => {
-      const unconfirmedBalance = unconfirmedBalances.has(state.wallet.address)
-        ? unconfirmedBalances.get(state.wallet.address)
+      const unconfirmedBalance = unconfirmedBalances.has(wallet.current.address)
+        ? unconfirmedBalances.get(wallet.current.address)
         : 0;
-      const balance = balances.has(state.wallet.address)
-        ? balances.get(state.wallet.address)
+      const balance = balances.has(wallet.current.address)
+        ? balances.get(wallet.current.address)
         : 0;
       if (
         typeof unconfirmedBalance !== "undefined" &&
         typeof balance !== "undefined"
       ) {
-        const tx = state.wallet.createTransaction(
-          toAddress,
-          amount,
-          state.blocks
-        );
+        const tx = wallet.current.createTransaction(toAddress, amount, blocks);
         if (tx) {
-          dispatch({ type: "add-transaction", transaction: tx });
-          dispatch({ type: "send-transaction-announcement", transaction: tx });
+          setTransactions([...transactions, tx]);
+          client.current.announceTransaction(tx);
           return true;
         }
       }
       return false;
     },
-    [state, balances]
+    [transactions, blocks]
   );
 
   return (
@@ -109,34 +158,34 @@ function Live() {
               <Grid>
                 <Grid.Col span={6}>
                   <WalletPanel
-                    wallet={state.wallet}
-                    balance={balances.get(state.wallet.address)}
+                    wallet={wallet.current}
+                    balance={balances.get(wallet.current.address)}
                     unconfirmedBalance={unconfirmedBalances.get(
-                      state.wallet.address
+                      wallet.current.address
                     )}
                     createTransaction={createTransaction}
                   />
                 </Grid.Col>
                 <Grid.Col span={6}>
-                  <TransactionPanel transactions={state.transactions} />
+                  <TransactionPanel transactions={transactions} />
                 </Grid.Col>
               </Grid>
               <Divider style={{ margin: 10 }} />
-              <BlockPanel blocks={state.blocks} mine={mine} />
+              <BlockPanel blocks={blocks} mine={mine} />
             </>
           }
         />
         <Route path="blocks">
-          <Route index element={<Blocks blocks={state.blocks} />} />
-          <Route path=":hash" element={<Blocks blocks={state.blocks} />} />
+          <Route index element={<Blocks blocks={blocks} />} />
+          <Route path=":hash" element={<Blocks blocks={blocks} />} />
         </Route>
         <Route path="transactions">
           <Route
             index
             element={
               <Transactions
-                confirmed={Blockchain.getTransactions(state.blocks)}
-                unconfirmed={state.transactions}
+                confirmed={getTransactions(blocks)}
+                unconfirmed={transactions}
               />
             }
           />
@@ -144,8 +193,8 @@ function Live() {
             path=":txid"
             element={
               <Transactions
-                confirmed={Blockchain.getTransactions(state.blocks)}
-                unconfirmed={state.transactions}
+                confirmed={getTransactions(blocks)}
+                unconfirmed={transactions}
               />
             }
           />
