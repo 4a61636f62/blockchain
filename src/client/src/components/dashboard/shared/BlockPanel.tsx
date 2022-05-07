@@ -124,7 +124,7 @@ function BlockPanel({
     <Container size={width * 0.75}>
       <Center>
         <Title style={{ padding: 10 }}>Blocks</Title>
-        {mine && <Button onClick={mine}>Mine!</Button>}
+        {mine && <Button onClick={mine}>Mine</Button>}
       </Center>
       <Center>
         <ScrollArea viewportRef={viewport}>

@@ -1,17 +1,49 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useReducer, useState } from "react";
 import { Divider, Grid } from "@mantine/core";
 import { Routes, Route } from "react-router-dom";
 import * as Blockchain from "lib/blockchain";
+import { Message, MessageTypes } from "lib/message";
 import TransactionPanel from "../shared/TransactionPanel";
 import BlockPanel from "../shared/BlockPanel";
 import WalletPanel from "./WalletPanel";
 import Blocks from "../../blocks/Blocks";
 import Transactions from "../../transactions/Transactions";
-import { useBlockchainClient } from "./BlockchainContext";
+import { reducer } from "../../../utils/reducers";
+import { BlockchainClient } from "../../../services/blockchain-client";
 
 function Live() {
   const [mining, setMining] = useState(false);
-  const { state, dispatch } = useBlockchainClient();
+  const [state, dispatch] = useReducer(reducer, {
+    client: new BlockchainClient(),
+    blocks: [],
+    transactions: [],
+    wallet: new Blockchain.Wallet(),
+  });
+
+  function handleMessages(message: Message): void {
+    switch (message.type) {
+      case MessageTypes.NewBlockAnnouncement:
+        dispatch({ type: "handle-block-announcement", message });
+        break;
+      case MessageTypes.TransactionAnnouncement:
+        dispatch({ type: "handle-transaction-announcement", message });
+        break;
+      case MessageTypes.ChainRequest:
+        dispatch({ type: "handle-chain-request" });
+        break;
+      case MessageTypes.ChainResponse:
+        dispatch({ type: "handle-chain-response", message });
+        break;
+      default:
+    }
+  }
+
+  useEffect(() => {
+    (async () => {
+      await state.client.connect(handleMessages);
+      dispatch({ type: "send-chain-request" });
+    })();
+  }, []);
 
   const balances = Blockchain.getAddressBalances(state.blocks);
   const unconfirmedBalances = Blockchain.getAddressUnconfirmedBalances(
