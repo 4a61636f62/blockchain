@@ -9,7 +9,7 @@ import BlockPanel from "../shared/BlockPanel";
 import Blocks from "../../blocks/Blocks";
 import Transactions from "../../transactions/Transactions";
 
-const TIMEOUT = 1000;
+const INTERVAL_TIME = 1000;
 
 function Simulation() {
   const [running, setRunning] = useState(false);
@@ -22,8 +22,8 @@ function Simulation() {
     []
   );
   const txRef = useRef<Blockchain.Transaction[]>([]);
-  const miningTimeout = useRef<NodeJS.Timeout>();
-  const txTimeout = useRef<NodeJS.Timeout>();
+  const miningInterval = useRef<NodeJS.Timeout>();
+  const txInterval = useRef<NodeJS.Timeout>();
   const balancesRef = useRef<{
     confirmed: Map<string, number>;
     unconfirmed: Map<string, number>;
@@ -94,18 +94,20 @@ function Simulation() {
   );
 
   const getRandomNode = useCallback(
-    (withBalance: boolean = false) => {
-      const wallets = withBalance
-        ? nodeWallets.filter((w) =>
-            balancesRef.current.confirmed.has(w.address)
-          )
-        : nodeWallets;
-      return wallets.length > 0
-        ? wallets[Math.floor(Math.random() * wallets.length)]
-        : null;
-    },
+    () => nodeWallets[Math.floor(Math.random() * nodeWallets.length)],
     [nodeWallets]
   );
+
+  const getRandomNodeWithBalance = useCallback(() => {
+    const walletsWithBalance = nodeWallets.filter((w) =>
+      balancesRef.current.confirmed.has(w.address)
+    );
+    return walletsWithBalance.length > 0
+      ? walletsWithBalance[
+          Math.floor(Math.random() * walletsWithBalance.length)
+        ]
+      : null;
+  }, [nodeWallets]);
 
   const createTransaction = useCallback(
     (fromWallet: Blockchain.Wallet, toAddress: string, amount: number) => {
@@ -138,44 +140,51 @@ function Simulation() {
     []
   );
 
+  const createRandomTransaction = useCallback(() => {
+    const fromWallet = getRandomNodeWithBalance();
+
+    const toWallet = getRandomNode();
+    if (fromWallet !== null && toWallet !== null) {
+      const balance = balancesRef.current.confirmed.get(fromWallet.address);
+      if (typeof balance !== "undefined") {
+        const amount = Math.floor(Math.random() * balance) + 1;
+        createTransaction(fromWallet, toWallet.address, amount);
+        setTransactions(txRef.current);
+        updateUnconfirmedBalances();
+      }
+    }
+  }, [nodeWallets]);
+
   useEffect(() => {
-    if (running && typeof miningTimeout.current === "undefined") {
-      miningTimeout.current = setInterval(() => {
+    if (running) {
+      miningInterval.current = setInterval(() => {
         if (autoTx) {
-          if (typeof txTimeout.current !== "undefined") {
-            clearInterval(txTimeout.current);
+          if (typeof txInterval.current !== "undefined") {
+            clearInterval(txInterval.current); // stop previous tx Interval before starting new one
           }
           const noOfTxs = Math.floor(Math.random() * 10) + 1;
-          const TxTime = TIMEOUT / noOfTxs;
-          txTimeout.current = setInterval(() => {
-            const fromWallet = getRandomNode(true);
-            const toWallet = getRandomNode();
-            if (fromWallet !== null && toWallet !== null) {
-              const balance = balancesRef.current.confirmed.get(
-                fromWallet.address
-              );
-              if (typeof balance !== "undefined") {
-                const amount = Math.floor(Math.random() * balance) + 1;
-                createTransaction(fromWallet, toWallet.address, amount);
-              }
-            }
+          const TxTime = INTERVAL_TIME / noOfTxs + 1;
+          txInterval.current = setInterval(() => {
+            createRandomTransaction();
           }, TxTime);
         }
         const minerWallet = getRandomNode();
         if (minerWallet) {
           mineBlock(minerWallet.address);
         }
-      }, TIMEOUT);
-    }
-    if (!running && typeof miningTimeout.current !== "undefined") {
-      clearTimeout(miningTimeout.current);
-      miningTimeout.current = undefined;
-      if (typeof txTimeout.current !== "undefined") {
-        clearInterval(txTimeout.current);
-        txTimeout.current = undefined;
+      }, INTERVAL_TIME);
+    } else {
+      // clear intervals
+      if (typeof miningInterval.current !== "undefined") {
+        clearTimeout(miningInterval.current);
+        miningInterval.current = undefined;
+      }
+      if (typeof txInterval.current !== "undefined") {
+        clearInterval(txInterval.current);
+        txInterval.current = undefined;
       }
     }
-  }, [running, autoTx, blocksRef, getRandomNode, createTransaction]);
+  }, [running]);
 
   return (
     <Routes>

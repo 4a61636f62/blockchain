@@ -15,7 +15,6 @@ import {
 import { Link } from "react-router-dom";
 import Simulation from "./dashboard/simulation/Simulation";
 import Live from "./dashboard/live/Live";
-import { BlockchainProvider } from "./dashboard/live/BlockchainContext";
 
 function App() {
   const [network, setNetwork] = useState<string>("Sim");
@@ -87,13 +86,7 @@ function App() {
         </Header>
       }
     >
-      {network === "Sim" ? (
-        <Simulation />
-      ) : (
-        <BlockchainProvider>
-          <Live />
-        </BlockchainProvider>
-      )}
+      {network === "Sim" ? <Simulation /> : <Live />}
     </AppShell>
   );
 }
