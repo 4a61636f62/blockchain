@@ -31,4 +31,5 @@ export type TransactionInput = {
 export type TransactionOutput = {
   amount: number;
   address: string;
+  index: number;
 };

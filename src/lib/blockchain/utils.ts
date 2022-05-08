@@ -20,6 +20,7 @@ function createBlockReward(minerAddress: string): Transaction {
   const blockRewardOutput: TransactionOutput = {
     address: minerAddress,
     amount: 100,
+    index: 0,
   };
   const timestamp = Date.now();
   return {
@@ -30,7 +31,7 @@ function createBlockReward(minerAddress: string): Transaction {
   };
 }
 
-export function hashBlock(block: UnminedBlock, nonce: number): string {
+function hashBlock(block: UnminedBlock, nonce: number): string {
   const data =
     block.prevHash +
     block.timestamp +
@@ -137,20 +138,20 @@ export function getAddressBalances(blocks: Block[]): Map<string, number> {
 
 export function getAddressUnconfirmedBalances(
   blocks: Block[],
-  transactions: Transaction[]
+  unconfirmedTransactions: Transaction[]
 ): Map<string, number> {
   const map = new Map<string, number>();
-  const utxo = getUTXO(blocks);
-  transactions.forEach((tx) => {
+  const confirmedTransactions = getTransactions(blocks);
+
+  unconfirmedTransactions.forEach((tx) => {
     tx.inputs.forEach((input) => {
-      const inputOutputs = utxo.get(input.txid);
-      if (typeof inputOutputs !== "undefined") {
-        inputOutputs.forEach((output) => {
-          let balance = map.get(output.address);
-          if (!balance) balance = 0;
-          map.set(output.address, balance - output.amount);
-        });
-      }
+      const inputTx = confirmedTransactions.filter(
+        (t) => t.txid === input.txid
+      )[0];
+      const outputToSpend = inputTx.outputs[input.outputIndex];
+      let balance = map.get(outputToSpend.address);
+      if (!balance) balance = 0;
+      map.set(outputToSpend.address, balance - outputToSpend.amount);
     });
     tx.outputs.forEach((output) => {
       let balance = map.get(output.address);

@@ -37,8 +37,9 @@ export class Wallet {
     if (change < 0) return null;
 
     const outputs: TransactionOutput[] = [];
-    outputs.push({ address: outputAddress, amount: amountToSend });
-    if (change > 0) outputs.push({ address: this.address, amount: change });
+    outputs.push({ address: outputAddress, amount: amountToSend, index: 0 });
+    if (change > 0)
+      outputs.push({ address: this.address, amount: change, index: 1 });
 
     const timestamp = Date.now();
     return {
@@ -61,7 +62,7 @@ export class Wallet {
         if (output.address === this.address) {
           inputs.push({
             txid,
-            outputIndex: index,
+            outputIndex: output.index,
             signature: this.sign(txid + index),
           });
           total += output.amount;
