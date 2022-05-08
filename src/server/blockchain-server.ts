@@ -1,6 +1,6 @@
 import WebSocket from "ws";
 import { WsServer } from "./ws-server";
-import { Message, MessageTypes, UUID } from "../lib/message";
+import { Message, MessageTypes } from "../lib/message";
 
 type AwaitingResponses = {
   numSentTo: number;
@@ -8,9 +8,9 @@ type AwaitingResponses = {
 };
 
 export class BlockchainServer extends WsServer<Message> {
-  sentMessagesAwaitingReply = new Map<UUID, AwaitingResponses>();
+  sentMessagesAwaitingReply = new Map<string, AwaitingResponses>();
 
-  receivedAwaitingResponse = new Map<UUID, WebSocket>();
+  receivedAwaitingResponse = new Map<string, WebSocket>();
 
   protected handleMessage(sender: WebSocket, message: Message): void {
     switch (message.type) {
