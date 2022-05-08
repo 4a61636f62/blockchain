@@ -6,9 +6,9 @@ module.exports = {
   },
   plugins: ["@typescript-eslint", "prettier"],
   extends: [
-    // "eslint:recommended",
-    // "plugin:@typescript-eslint/eslint-recommended",
-    // "plugin:@typescript-eslint/recommended",
+    "eslint:recommended",
+    "plugin:@typescript-eslint/eslint-recommended",
+    "plugin:@typescript-eslint/recommended",
     "airbnb",
     "airbnb-typescript",
     "prettier",

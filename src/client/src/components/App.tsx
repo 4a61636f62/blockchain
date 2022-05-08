@@ -14,7 +14,7 @@ import {
 } from "@mantine/core";
 import { Link } from "react-router-dom";
 import Simulation from "./dashboard/simulation/Simulation";
-import Live from "./dashboard/live/Live";
+import LiveOLD from "./dashboard/live/Live";
 
 function App() {
   const [network, setNetwork] = useState<string>("Sim");
@@ -86,7 +86,7 @@ function App() {
         </Header>
       }
     >
-      {network === "Sim" ? <Simulation /> : <Live />}
+      {network === "Sim" ? <Simulation /> : <LiveOLD />}
     </AppShell>
   );
 }
