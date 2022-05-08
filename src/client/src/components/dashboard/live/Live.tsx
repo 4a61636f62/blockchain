@@ -54,14 +54,25 @@ function Live() {
     [transactions]
   );
 
+  const handleChainRequest = useCallback(
+    (message: Message) => {
+      client.current.sendChain(blocks, message.correlationId);
+    },
+    [blocks]
+  );
+
   const handleChainResponse = useCallback((message: Message) => {
     if (typeof message.payload !== "undefined") {
       setBlocks(JSON.parse(message.payload) as Block[]);
     }
   }, []);
 
-  const handleMessages = useCallback(
-    (message: Message) => {
+  useEffect(() => {
+    client.current.connect();
+  }, []);
+
+  useEffect(() => {
+    const handleMessages = (message: Message) => {
       switch (message.type) {
         case MessageTypes.NewBlockAnnouncement:
           handleBlockAnnouncement(message);
@@ -70,33 +81,20 @@ function Live() {
           handleTransactionAnnouncement(message);
           break;
         case MessageTypes.ChainRequest:
-          client.current.sendChain(blocks);
+          handleChainRequest(message);
           break;
         case MessageTypes.ChainResponse:
           handleChainResponse(message);
           break;
         default:
       }
-    },
-    [
-      blocks,
-      transactions,
-      handleBlockAnnouncement,
-      handleTransactionAnnouncement,
-      handleChainResponse,
-    ]
-  );
-
-  useEffect(() => {
-    (async () => {
-      await client.current.connect();
-      client.current.requestLongestChain();
-    })();
-  }, []);
-
-  useEffect(() => {
-    client.current.setCallback(handleMessages);
-  }, [handleMessages]);
+    };
+    client.current.setHandleMessages(handleMessages);
+  }, [
+    handleBlockAnnouncement,
+    handleTransactionAnnouncement,
+    handleChainResponse,
+  ]);
 
   const balances = getAddressBalances(blocks);
   const unconfirmedBalances = getAddressUnconfirmedBalances(

@@ -1,7 +1,7 @@
 export abstract class WsClient<T> {
   private wsc!: Promise<WebSocket>;
 
-  private messagesCallback!: (messages: T) => void;
+  private handleMessages!: (messages: T) => void;
 
   connect(): Promise<WebSocket> {
     this.wsc = new Promise((resolve, reject) => {
@@ -13,19 +13,18 @@ export abstract class WsClient<T> {
     return this.wsc;
   }
 
-  setCallback(messagesCallback: (message: T) => void): void {
-    this.messagesCallback = messagesCallback;
-  }
-
-  disconnect() {
-    this.wsc.then((ws) => ws.close());
+  setHandleMessages(fn: (message: T) => void): void {
+    this.handleMessages = fn;
   }
 
   private readonly onMessageReceived = (event: MessageEvent) => {
     const message = JSON.parse(event.data) as T;
-    // need to check if message correlates to message awaiting reply
-    this.messagesCallback(message);
+    this.handleMessages(message);
   };
+
+  disconnect() {
+    this.wsc.then((ws) => ws.close());
+  }
 
   send(message: T) {
     this.wsc.then((ws) => ws.send(JSON.stringify(message)));
