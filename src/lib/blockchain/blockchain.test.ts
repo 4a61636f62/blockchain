@@ -9,7 +9,7 @@ import {
   mineGenesisBlock,
   Transaction,
   Wallet,
-} from "../src/lib/blockchain";
+} from "./index";
 
 describe("Blockchain library", () => {
   let transactions: Transaction[];
