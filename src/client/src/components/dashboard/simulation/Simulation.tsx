@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Divider, Grid } from "@mantine/core";
 import { Route, Routes } from "react-router-dom";
-import * as Blockchain from "lib/blockchain/";
+import * as Blockchain from "../../../../../lib/blockchain";
 import SimulationControl from "./SimulationControl";
 import NodePanel from "./NodePanel";
 import TransactionPanel from "../shared/TransactionPanel";
