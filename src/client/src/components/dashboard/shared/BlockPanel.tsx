@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import { useHover, useViewportSize } from "@mantine/hooks";
+import { useHover } from "@mantine/hooks";
 import {
   Card,
   Center,
@@ -40,6 +40,7 @@ function BlockCard({
         style={{ cursor: "pointer", background: hovered ? "#f8f9fa" : "white" }}
         onClick={onClick}
         ref={ref}
+        data-testid={`Block ${index}`}
       >
         <Group style={{ padding: 0 }} align="baseline" spacing={5}>
           <Title>Block #{index}</Title>
@@ -96,7 +97,6 @@ function BlockPanel({
   mine: (() => void) | false;
 }) {
   const navigate = useNavigate();
-  const { width } = useViewportSize();
   const viewport = useRef<HTMLDivElement>(null);
   const elements: JSX.Element[] = [];
   blocks.forEach((b, index) => {
@@ -114,14 +114,17 @@ function BlockPanel({
   });
 
   useEffect(() => {
-    if (viewport.current != null)
+    if (
+      viewport.current != null &&
+      typeof viewport.current.scrollTo !== "undefined"
+    )
       viewport.current.scrollTo({
         left: viewport.current.scrollWidth,
       });
   });
 
   return (
-    <Container size={width * 0.75}>
+    <Container size="xl">
       <Center>
         <Title style={{ padding: 10 }}>Blocks</Title>
         {mine && <Button onClick={mine}>Mine</Button>}
@@ -134,7 +137,7 @@ function BlockPanel({
                 BLOCK_WIDTH * blocks.length + (ARROW_WIDTH * blocks.length - 2),
             }}
           >
-            <Group direction="row" spacing={0}>
+            <Group direction="row" spacing={0} data-testid="blocks">
               {elements}
             </Group>
           </div>
