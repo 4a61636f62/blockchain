@@ -14,7 +14,7 @@ import {
 } from "@mantine/core";
 import { Link } from "react-router-dom";
 import Simulation from "./dashboard/simulation/Simulation";
-import LiveOLD from "./dashboard/live/Live";
+import Live from "./dashboard/live/Live";
 
 function App() {
   const [network, setNetwork] = useState<string>("Sim");
@@ -53,7 +53,7 @@ function App() {
               </Button>
             </Center>
           </Navbar.Section>
-          <Navbar.Section grow mt="md">
+          <Navbar.Section mt="md">
             <Center>
               <Group direction="column" spacing="xl">
                 <Anchor component={Link} to="/">
@@ -86,7 +86,7 @@ function App() {
         </Header>
       }
     >
-      {network === "Sim" ? <Simulation /> : <LiveOLD />}
+      {network === "Sim" ? <Simulation /> : <Live />}
     </AppShell>
   );
 }
