@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Divider, Grid } from "@mantine/core";
 import { Routes, Route } from "react-router-dom";
-import { Message, MessageTypes } from "lib/message";
 import {
   Block,
   Transaction,
@@ -12,7 +11,8 @@ import {
   mineBlock,
   mineGenesisBlock,
   getTransactions,
-} from "lib/blockchain";
+} from "../../../../../lib/blockchain";
+import { Message, MessageTypes } from "../../../../../lib/message";
 import TransactionPanel from "../shared/TransactionPanel";
 import BlockPanel from "../shared/BlockPanel";
 import WalletPanel from "./WalletPanel";

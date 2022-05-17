@@ -1,5 +1,5 @@
-import { Message, MessageTypes } from "lib/message";
-import * as Blockchain from "lib/blockchain";
+import { Message, MessageTypes } from "../../../lib/message";
+import * as Blockchain from "../../../lib/blockchain";
 import { WsClient } from "./ws-client";
 
 const generateId = () => (Math.random() + 1).toString(36).substring(7);

@@ -61,6 +61,7 @@ function TransactionModal({
       onClose={() => navigate("/transactions")}
       size="50%"
       title={<Title order={3}>Transaction</Title>}
+      data-testid="TransactionModal"
     >
       <Table>
         <tbody>

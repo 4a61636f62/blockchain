@@ -4,20 +4,27 @@
   "private": true,
   "dependencies": {
     "@mantine/core": "^3.6.9",
-    "@mantine/hooks": "^3.6.9",
     "@mantine/form": "^4.2.2",
+    "@mantine/hooks": "^3.6.9",
     "@mantine/styles": "^4.2.2",
     "dotenv": "^15.0.0",
-    "react": "^17.0.2",
-    "react-dom": "^17.0.2",
+    "react": "^18.1.0",
+    "react-dom": "^18.1.0",
+    "react-icons": "^4.3.1",
     "react-router-dom": "^6.3.0",
     "web-vitals": "^2.1.4",
-    "react-icons": "^4.3.1"
+    "history": "^5.3.0"
   },
   "devDependencies": {
+    "@testing-library/react": "^13.2.0",
+    "@testing-library/user-event": "^14.1.1",
+    "@types/jest": "^27.5.0",
     "@types/react": "^17.0.38",
     "@types/react-dom": "^17.0.11",
+    "@types/react-test-renderer": "^18.0.0",
     "@types/webpack-dev-server": "^4.7.2",
+    "react-test-renderer": "^18.1.0",
+    "ts-jest": "^28.0.2",
     "ts-loader": "^8.2.3",
     "webpack": "^5.68.0",
     "webpack-cli": "^4.9.2",
@@ -39,6 +46,21 @@
       "last 1 chrome version",
       "last 1 firefox version",
       "last 1 safari version"
+    ]
+  },
+  "jest": {
+    "transform": {
+      "^.+\\.tsx?$": "ts-jest"
+    },
+    "testEnvironment": "jsdom",
+    "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.tsx?$",
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "jsx",
+      "json",
+      "node"
     ]
   }
 }

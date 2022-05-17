@@ -26,6 +26,7 @@ function BlockModal({
       opened={opened}
       onClose={() => navigate("/blocks")}
       title={<Title order={3}>Block #{index}</Title>}
+      data-testid="BlockModal"
     >
       <Table>
         <tbody>
@@ -60,14 +61,16 @@ function BlockModal({
       </Title>
       <Table style={{ textAlign: "left" }}>
         <thead>
-          <th>txID</th>
-          <th>Time</th>
-          <th>Type</th>
-          <th>Amount</th>
+          <tr>
+            <th>txID</th>
+            <th>Time</th>
+            <th>Type</th>
+            <th>Amount</th>
+          </tr>
         </thead>
         <tbody>
           {block.txs.map((tx) => (
-            <tr>
+            <tr key={tx.txid}>
               <td>
                 <Anchor component={Link} to={`/transactions/${tx.txid}`}>
                   {`${tx.txid.slice(0, 20)}...`}

@@ -18,7 +18,7 @@ function TransactionCard({
   transaction: Blockchain.Transaction;
 }) {
   return (
-    <Card withBorder>
+    <Card withBorder data-testid={transaction.txid}>
       <Grid>
         <Grid.Col span={6}>
           <Anchor component={Link} to={`/transactions/${transaction.txid}`}>
@@ -61,7 +61,7 @@ function TransactionPanel({
 }) {
   const [openTx, setOpenTx] = useState<Blockchain.Transaction | null>(null);
   return (
-    <Container>
+    <Container data-testid="TransactionPanel">
       <div style={{ height: 70 }}>
         <Title>Transactions</Title>
         <TableHeaders />
@@ -69,7 +69,7 @@ function TransactionPanel({
       <Modal opened={openTx !== null} onClose={() => setOpenTx(null)}>
         tx modal
       </Modal>
-      <ScrollArea style={{ height: 500 }}>
+      <ScrollArea style={{ height: 500 }} data-testid="transactions">
         {transactions.map((t) => (
           <TransactionCard transaction={t} key={t.txid} />
         ))}
