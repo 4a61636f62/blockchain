@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build:client": "cd src/client && npm run build",
+    "build:client": "cd src/client && npm install && npm run build",
     "build:server": "tsc -p src/server/tsconfig.server.json",
     "build": "concurrently npm:build:*",
     "start": "nodemon --inspect src/server/main.ts",
